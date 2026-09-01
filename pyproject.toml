@@ -31,7 +31,8 @@ dependencies = []
 
 [project.urls]
 Homepage = "https://dashboard.aiondashboard.site"
-Source = "https://github.com/AION-Analytics-India"
+Source = "https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar"
+Issues = "https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
