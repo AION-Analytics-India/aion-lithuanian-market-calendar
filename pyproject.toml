@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aion-lithuanian-market-calendar"
+version = "0.1.0"
+description = "Lithuanian public holiday, bank and market calendar. Holidays are computed, not tabulated, so it never needs updating. Names in English and Lithuanian."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "AION Analytics (India)", email = "contact@aiondashboard.site" }]
+keywords = [
+  "lithuania", "lithuanian", "holidays", "public holidays", "bank holidays",
+  "market calendar", "business days", "working days", "nasdaq vilnius", "XVIL",
+  "svenciu dienos", "darbo dienos", "baltic", "europe",
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Natural Language :: English",
+  "Natural Language :: Lithuanian",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: Office/Business :: Financial",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://dashboard.aiondashboard.site"
+Source = "https://github.com/AION-Analytics-India"
+
+[tool.setuptools.packages.find]
+where = ["src"]
