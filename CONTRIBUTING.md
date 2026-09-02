@@ -10,13 +10,23 @@ at the Labour Code or another primary source, include it. Holiday rules are the
 one thing in this package that must be right, and a native speaker noticing a
 wrong name or a missing day is worth more than a refactor.
 
-Three questions we would particularly like answered by someone in Lithuania:
+### Three questions that are now answered
 
-1. Is the list of sixteen statutory non-working days complete?
-2. Is Father's Day always the first Sunday of June?
-3. When a holiday falls on a Saturday, is the following Monday given off, or is
-   the day simply absorbed? This package currently assumes absorbed, and if that
-   is wrong every business-day calculation is affected.
+Earlier releases asked for help with three facts. A Lithuanian native speaker
+confirmed all three in September 2026, and they are now settled:
+
+1. **The list of sixteen is complete.** It matches article 123 of the Labour
+   Code.
+2. **Father's Day is the first Sunday of June** — 7 June 2026. One published
+   source claimed 1 June 2026, which is a Monday.
+3. **A holiday falling on a weekend is absorbed.** No replacement weekday is
+   given. This is what the package already did, and it is correct.
+
+The same review surfaced one thing worth repeating, because it is the most
+common way to get a Lithuanian calendar wrong: **Užgavėnės is not a day off.**
+Several commercial "nedarbo dienos" websites list seventeen days for 2026 by
+including it. It is absent from article 123 and is an ordinary working day, so
+it lives in `observances()`, never in `holidays()`.
 
 ## Code changes
 

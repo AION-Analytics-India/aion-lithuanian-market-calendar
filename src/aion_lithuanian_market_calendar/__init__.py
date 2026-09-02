@@ -16,9 +16,10 @@ any year, offline, with no update and no network call.
 
 Names are returned in English and Lithuanian.
 
-Scope: the sixteen statutory non-working days (šventės). Lithuania's
-commemorative and flag days (atmintinos dienos) are official but remain working
-days, so they do not affect business-day arithmetic and are out of scope here.
+Scope: the sixteen statutory non-working days (šventės) of article 123 of the
+Labour Code. Lithuania's commemorative and flag days (atmintinos dienos), and
+traditional celebrations such as Užgavėnės, are not days off. They never affect
+business-day arithmetic; Užgavėnės is exposed separately by `observances()`.
 
 MIT licensed. AION Analytics (India).
 """
@@ -27,13 +28,15 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import Iterable
 
-from .holidays import Holiday, easter_sunday, holiday_on, holidays
+from .holidays import Holiday, Observance, easter_sunday, holiday_on, holidays, observances
 
 __all__ = [
     "Holiday",
+    "Observance",
     "easter_sunday",
     "holidays",
     "holiday_on",
+    "observances",
     "is_public_holiday",
     "is_business_day",
     "is_weekend",
@@ -41,10 +44,11 @@ __all__ = [
     "previous_business_day",
     "business_days_between",
     "is_market_open",
+    "holidays_between",
     "__version__",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 #: Nasdaq Vilnius continuous trading, local time. Kept deliberately simple:
 #: session times are the one part of an exchange calendar that does change by

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aion-lithuanian-market-calendar"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lithuanian public holiday, bank and market calendar. Holidays are computed, not tabulated, so it never needs updating. Names in English and Lithuanian."
 readme = "README.md"
 requires-python = ">=3.9"

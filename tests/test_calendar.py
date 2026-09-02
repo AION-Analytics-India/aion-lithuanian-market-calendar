@@ -1,7 +1,7 @@
 from datetime import date
 import pytest
 from aion_lithuanian_market_calendar import (
-    easter_sunday, holidays, holiday_on, is_public_holiday,
+    easter_sunday, holidays, holiday_on, observances, is_public_holiday,
     is_business_day, next_business_day, previous_business_day,
     business_days_between, is_market_open,
 )
@@ -66,4 +66,69 @@ def test_holiday_on_accepts_all_date_forms():
     from datetime import datetime
     for value in ("2026-06-24", date(2026, 6, 24), datetime(2026, 6, 24, 11, 30)):
         h = holiday_on(value)
-        assert h is not None and h.name_lt == "Rasos ir Joninės"
+        assert h is not None and h.name_lt == "Rasos ir Joninių diena"
+
+
+# --- Names, verified against Labour Code article 123 and by a Lithuanian
+# --- native speaker (2026-09-02). Each entry here is a name that was wrong in
+# --- 0.1.0, so these assertions are regressions, not decoration.
+STATUTORY_LT_2026 = {
+    "2026-01-01": "Naujieji metai",
+    "2026-02-16": "Lietuvos valstybės atkūrimo diena",
+    "2026-03-11": "Lietuvos nepriklausomybės atkūrimo diena",
+    "2026-04-05": "Šv. Velykos",
+    "2026-04-06": "Velykų antroji diena",
+    "2026-05-01": "Tarptautinė darbo diena",
+    "2026-05-03": "Motinos diena",
+    "2026-06-07": "Tėvo diena",
+    "2026-06-24": "Rasos ir Joninių diena",
+    "2026-07-06": "Valstybės (Lietuvos karaliaus Mindaugo karūnavimo) ir Tautiškos giesmės diena",
+    "2026-08-15": "Žolinė (Švč. Mergelės Marijos ėmimo į dangų diena)",
+    "2026-11-01": "Visų Šventųjų diena",
+    "2026-11-02": "Mirusiųjų atminimo (Vėlinių) diena",
+    "2026-12-24": "Šv. Kūčios",
+    "2026-12-25": "Šv. Kalėdos",
+    "2026-12-26": "Šv. Kalėdų antroji diena",
+}
+
+
+def test_lithuanian_names_match_article_123():
+    assert {h.date.isoformat(): h.name_lt for h in holidays(2026)} == STATUTORY_LT_2026
+
+
+def test_all_saints_day_capitalises_sventuju():
+    # Article 123 writes "Visų Šventųjų dieną" with a capital Š; 0.1.0 did not.
+    assert holiday_on(date(2026, 11, 1)).name_lt == "Visų Šventųjų diena"
+
+
+def test_statehood_day_includes_the_anthem():
+    # The full statutory name carries "ir Tautiškos giesmės diena"; 0.1.0 dropped it.
+    assert "Tautiškos giesmės" in holiday_on(date(2026, 7, 6)).name_lt
+
+
+def test_uzgavenes_is_an_observance_not_a_holiday():
+    """Užgavėnės is printed on Lithuanian calendars but is not in article 123.
+
+    Several commercial "nedarbo dienos" sites list it as a day off. It is not.
+    """
+    uzgavenes = date(2026, 2, 17)
+    assert holiday_on(uzgavenes) is None
+    assert not is_public_holiday(uzgavenes)
+    assert is_business_day(uzgavenes)          # a Tuesday, and a working day
+    assert [o.name_lt for o in observances(2026)] == ["Užgavėnės"]
+    assert observances(2026)[0].date == uzgavenes
+
+
+def test_observances_never_enter_business_day_arithmetic():
+    for year in range(2024, 2041):
+        for o in observances(year):
+            assert holiday_on(o.date) is None, f"{o.name_lt} {year} leaked into holidays()"
+
+
+def test_uzgavenes_tracks_easter():
+    # Shrove Tuesday is Easter minus 47 days, and always a Tuesday.
+    from datetime import timedelta
+    for year in range(2024, 2041):
+        o = observances(year)[0]
+        assert o.date == easter_sunday(year) - timedelta(days=47)
+        assert o.date.weekday() == 1

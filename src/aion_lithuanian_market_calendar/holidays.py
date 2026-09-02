@@ -14,6 +14,18 @@ Easter uses the Gregorian (Western) computus. Lithuania is predominantly
 Catholic and observes Western Easter, not the Orthodox date. Using the wrong
 computus would misplace two holidays every year.
 
+**Source.** The list and the Lithuanian names follow article 123 of the Labour
+Code (Darbo kodeksas, 123 straipsnis "Švenčių dienos") verbatim, in nominative
+form. Article 123 enumerates fourteen items; two of them ("Kalėdų dienomis",
+and the Easter Sunday-and-Monday pair) cover two calendar days each, which is
+why sixteen dates fall out of fourteen provisions.
+
+**Traditional celebrations are not holidays.** Užgavėnės, Joninių išvakarės and
+similar folk days are widely printed on Lithuanian wall calendars and on several
+commercial "nedarbo dienos" websites, but they are absent from article 123 and
+are ordinary working days. They are exposed separately by :func:`observances`
+and deliberately excluded from every business-day calculation. See the README.
+
 Genuinely unpredictable events, such as a one-off national day of mourning
 declared by the Seimas, cannot be derived by definition and are out of scope.
 If one is ever needed it belongs in an optional override layer, not here: this
@@ -25,7 +37,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from functools import lru_cache
 
-__all__ = ["Holiday", "easter_sunday", "holidays", "holiday_on"]
+__all__ = ["Holiday", "Observance", "easter_sunday", "holidays", "holiday_on", "observances"]
 
 
 @dataclass(frozen=True)
@@ -40,6 +52,23 @@ class Holiday:
 
     def __str__(self) -> str:  # pragma: no cover - display helper
         return f"{self.date.isoformat()}  {self.name_en} ({self.name_lt})"
+
+
+@dataclass(frozen=True)
+class Observance:
+    """A traditional celebration that is **not** a day off.
+
+    Kept apart from :class:`Holiday` so it can never leak into business-day
+    arithmetic by accident.
+    """
+
+    date: date
+    name_en: str
+    name_lt: str
+    moveable: bool = True
+
+    def __str__(self) -> str:  # pragma: no cover - display helper
+        return f"{self.date.isoformat()}  {self.name_en} ({self.name_lt}) [working day]"
 
 
 def easter_sunday(year: int) -> date:
@@ -78,23 +107,48 @@ def holidays(year: int) -> tuple[Holiday, ...]:
     easter = easter_sunday(year)
     items = [
         Holiday(date(year, 1, 1), "New Year's Day", "Naujieji metai"),
-        Holiday(date(year, 2, 16), "Day of Restoration of the State", "Lietuvos valstybės atkūrimo diena"),
-        Holiday(date(year, 3, 11), "Day of Restoration of Independence", "Lietuvos nepriklausomybės atkūrimo diena"),
+        Holiday(date(year, 2, 16), "Day of Restoration of the State of Lithuania",
+                "Lietuvos valstybės atkūrimo diena"),
+        Holiday(date(year, 3, 11), "Day of Restoration of Independence of Lithuania",
+                "Lietuvos nepriklausomybės atkūrimo diena"),
         Holiday(easter, "Easter Sunday", "Šv. Velykos", moveable=True),
-        Holiday(easter + timedelta(days=1), "Easter Monday", "Antroji šv. Velykų diena", moveable=True),
+        Holiday(easter + timedelta(days=1), "Easter Monday", "Velykų antroji diena", moveable=True),
         Holiday(date(year, 5, 1), "International Labour Day", "Tarptautinė darbo diena"),
         Holiday(_first_sunday(year, 5), "Mother's Day", "Motinos diena", moveable=True),
         Holiday(_first_sunday(year, 6), "Father's Day", "Tėvo diena", moveable=True),
-        Holiday(date(year, 6, 24), "St John's Day, Midsummer", "Rasos ir Joninės"),
-        Holiday(date(year, 7, 6), "Statehood Day", "Valstybės diena"),
-        Holiday(date(year, 8, 15), "Assumption Day", "Žolinė"),
-        Holiday(date(year, 11, 1), "All Saints' Day", "Visų šventųjų diena"),
-        Holiday(date(year, 11, 2), "All Souls' Day", "Mirusiųjų atminimo diena, Vėlinės"),
+        Holiday(date(year, 6, 24), "Day of Dew and St John (Midsummer)", "Rasos ir Joninių diena"),
+        Holiday(date(year, 7, 6), "Statehood Day and Day of the National Anthem",
+                "Valstybės (Lietuvos karaliaus Mindaugo karūnavimo) ir Tautiškos giesmės diena"),
+        Holiday(date(year, 8, 15), "Assumption Day",
+                "Žolinė (Švč. Mergelės Marijos ėmimo į dangų diena)"),
+        Holiday(date(year, 11, 1), "All Saints' Day", "Visų Šventųjų diena"),
+        Holiday(date(year, 11, 2), "Day of Remembrance of the Dead (All Souls' Day)",
+                "Mirusiųjų atminimo (Vėlinių) diena"),
         Holiday(date(year, 12, 24), "Christmas Eve", "Šv. Kūčios"),
         Holiday(date(year, 12, 25), "Christmas Day", "Šv. Kalėdos"),
-        Holiday(date(year, 12, 26), "Second Day of Christmas", "Antroji šv. Kalėdų diena"),
+        Holiday(date(year, 12, 26), "Second Day of Christmas", "Šv. Kalėdų antroji diena"),
     ]
     return tuple(sorted(items, key=lambda h: h.date))
+
+
+@lru_cache(maxsize=64)
+def observances(year: int) -> tuple[Observance, ...]:
+    """Traditional celebrations that are **working days**, ordered by date.
+
+    These are not in article 123 and are not days off. They are provided because
+    Lithuanian wall calendars and several commercial holiday websites print them
+    alongside the statutory list, so a caller comparing this package against such
+    a calendar would otherwise think a day were missing.
+
+    Nothing here affects :func:`~aion_lithuanian_market_calendar.is_business_day`,
+    :func:`~aion_lithuanian_market_calendar.is_market_open` or any other
+    business-day calculation.
+    """
+    # Shrove Tuesday: the day before Ash Wednesday, so Easter minus 47 days.
+    return (
+        Observance(easter_sunday(year) - timedelta(days=47),
+                   "Shrove Tuesday (Carnival)", "Užgavėnės"),
+    )
 
 
 def holiday_on(day: date | datetime | str) -> Holiday | None:
