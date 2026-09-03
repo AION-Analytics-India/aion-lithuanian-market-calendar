@@ -1,10 +1,18 @@
 # aion-lithuanian-market-calendar
 
+**Lithuanian public holiday, bank and market calendar. Never needs updating.**
 **Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Jo niekada nereikia atnaujinti.**
 
 [![PyPI](https://img.shields.io/pypi/v/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
+[![Downloads](https://static.pepy.tech/badge/aion-lithuanian-market-calendar)](https://pepy.tech/project/aion-lithuanian-market-calendar)
 [![Python](https://img.shields.io/pypi/pyversions/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
-[![Licencija: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+**[English](#english)** · **[Lietuviškai](#lietuviškai)**
+
+---
+
+## Lietuviškai
 
 *In English: [README.md](README.md)*
 
@@ -24,20 +32,62 @@ holiday_on("2026-06-24")
 #         name_lt='Rasos ir Joninių diena')
 ```
 
-## Kodėl jo nereikia atnaujinti
+Nereikia API rakto. Nereikia interneto ryšio. Nereikia jokių nustatymų. Jokių
+priklausomybių.
 
-Visos Lietuvos švenčių dienos yra **apskaičiuojamos**. Dvylika jų yra fiksuotos
-datos. Dvi priklauso nuo Velykų. Dvi yra pirmasis mėnesio sekmadienis.
+### Kam ji skirta
 
-Todėl ši biblioteka jas apskaičiuoja, o ne saugo datų sąrašą, kuris kasmet
-pasensta. Įdiekite vieną kartą ir ji veiks 2027, 2040 ir bet kuriais vėlesniais
-metais, **be interneto ryšio ir be jokios priežiūros**.
+Bet kam, kas turi atsakyti į klausimą *„ar ta diena Lietuvoje buvo darbo
+diena?"* ir kaskart gauti tą patį atsakymą.
+
+- **Mokėjimai ir atsiskaitymai.** Valiutavimo datos, SEPA terminai, T+2,
+  sąskaitų apmokėjimo terminai ir delspinigiai skaičiuojami darbo dienomis.
+  Lietuva yra didžiausias elektroninių pinigų ir mokėjimo įstaigų licencijavimo
+  centras ES, todėl labai didelė dalis Europos mokėjimų infrastruktūros
+  atsiskaito būtent pagal Lietuvos darbo dienų kalendorių.
+- **Darbo užmokestis ir personalas.** Darbo laiko apskaita, atostogų kaupimas,
+  įspėjimo terminai ir priemokos už darbą švenčių dienomis remiasi *šventėmis*.
+  Suklydus dėl liepos 6 d., tai jau ne kosmetinė, o atlyginimo klaida.
+- **Rinkos duomenys ir prekyba.** Nasdaq Vilnius sesijų tikrinimas, duomenų
+  eilučių derinimas, tarpų aptikimas ir istorinis testavimas, kuris neturi
+  palaikyti šventės trūkstamais duomenimis.
+- **Planavimas ir SLA.** „Trys darbo dienos" sutartyje, naktinė užduotis, kuri
+  neturi pasileisti per šventę, priminimas, kuris turi pasiekti žmogų darbo
+  metu.
+- **Ataskaitų terminai.** Mokestinės ir priežiūros ataskaitos, kurių terminas
+  keliasi, kai jis išpuola ne darbo dieną.
+
+### Kuo ji naudinga
+
+**Ji teisinga be jokios priežiūros.** Visos Lietuvos švenčių dienos yra
+apskaičiuojamos: dvylika yra fiksuotos datos, dvi priklauso nuo Velykų, dvi yra
+pirmasis mėnesio sekmadienis. Todėl biblioteka jas *apskaičiuoja*, o ne saugo
+sąrašą, kuris kasmet gruodį pasensta. Įdiekite vieną kartą ir ji veiks 2027,
+2040 ir bet kuriais vėlesniais metais, be interneto ryšio.
+
+Tuo ji skiriasi nuo rinkų, kurių šventės skelbiamos kasmet ir tikrai negali būti
+apskaičiuotos — mūsų [Indijos rinkos
+kalendorius](https://pypi.org/project/aion-indian-market-calendar/) būtent dėl
+to platinamas su duomenų failu. Lietuvai jo nereikia, todėl jo ir nėra.
+
+**Ji nesijungia į internetą.** Jokių tinklo užklausų, todėl ji veikia
+izoliuotame atsiskaitymų serveryje ar CI aplinkoje be išorinio ryšio ir negali
+sugesti dėl to, kad trečiosios šalies švenčių API neveikia ar apribojo užklausas.
+
+**Ji dvikalbė, todėl tinka rodyti naudotojui.** Kiekviena šventė turi ir
+`name_en`, ir `name_lt` pagal Darbo kodekso formuluotę, todėl lietuvis klientas
+mato `Rasos ir Joninių diena`, o ne kieno nors susigalvotą vertimą.
 
 **Velykos skaičiuojamos pagal Grigaliaus (Vakarų) kalendorių**, nes Lietuva yra
 katalikiška šalis ir švenčia Vakarų, o ne stačiatikių Velykas. Suklydus čia,
-kasmet nukryptų dvi šventės.
+kasmet nukryptų dvi šventės — tai dažniausia klaida pačių rašytame Europos
+švenčių kode.
 
-## Šešiolika švenčių dienų
+**Ji nespėlioja.** Kur įstatymas tyli, biblioteka taisyklės nesugalvoja, o kur
+populiarūs kalendoriai nesutampa su įstatymu, ji laikosi įstatymo ir tai
+pasako atvirai — žemiau.
+
+### Šešiolika švenčių dienų
 
 Pavadinimai pateikti pagal **Darbo kodekso 123 straipsnį** („Švenčių dienos"),
 vardininko linksniu. 123 straipsnyje yra keturiolika punktų; du iš jų apima po
@@ -64,10 +114,10 @@ kartu su 26 — todėl iš keturiolikos punktų susidaro šešiolika dienų.
 | Gruodžio 26 | Šv. Kalėdų antroji diena | Second Day of Christmas |
 
 **Šventės neperkeliamos.** Jei šventė sutampa su savaitgaliu, ji į pirmadienį
-neperkeliama. Pavyzdžiui, Žolinė 2026 m. rugpjūčio 15 d. yra šeštadienis, o
-po jos einantis pirmadienis — įprasta darbo diena.
+neperkeliama. Pavyzdžiui, Žolinė 2026 m. rugpjūčio 15 d. yra šeštadienis, o po
+jos einantis pirmadienis — įprasta darbo diena.
 
-## Užgavėnės nėra nedarbo diena
+### Užgavėnės nėra nedarbo diena
 
 Kai kurios Lietuvos kalendorių ir buhalterinės apskaitos svetainės skelbia
 **septyniolikos** „nedarbo dienų" sąrašą 2026 metams; papildomas įrašas yra
@@ -94,7 +144,7 @@ is_business_day("2026-02-17")   # True — tai darbo diena
 kurio kito darbo dienų skaičiavimo. Testai tai tikrina kiekvieniems metams nuo
 2024 iki 2040.
 
-## Funkcijos
+### Funkcijos
 
 ```python
 is_business_day(when=None)          # darbo diena bankams ir įstaigoms
@@ -116,7 +166,15 @@ is_market_open(at=None, market="XVIL")   # Nasdaq Vilnius
 
 Datos priimamos kaip `date`, `datetime`, ISO tekstas arba `None` (šiandien).
 
-## Apimtis
+```python
+from aion_lithuanian_market_calendar import business_days_between, holidays_between
+
+business_days_between("2026-12-20", "2027-01-05")   # 8
+[h.name_lt for h in holidays_between("2026-12-01", "2027-01-01")]
+# ['Šv. Kūčios', 'Šv. Kalėdos', 'Šv. Kalėdų antroji diena']
+```
+
+### Apimtis
 
 Apima šešiolika **nedarbo** dienų (*šventės*) pagal 123 straipsnį.
 
@@ -130,7 +188,11 @@ pagal taisyklę, o pagal pranešimą. `is_market_open` naudoja įprastas Nasdaq
 Vilnius prekybos valandas; jei reikia tikslumo iki minutės, pasitikrinkite
 biržoje.
 
-## Patikra
+Seimo paskelbta vienkartinė gedulo diena pagal apibrėžimą negali būti
+apskaičiuota ir į biblioteką neįtraukta. Jei jos reikia, pridėkite ją atskirai,
+o ne taisykite skaičiavimą.
+
+### Patikra
 
 Velykų data patikrinta 2024, 2025, 2026, 2027, 2030 ir 2035 metams. Motinos ir
 Tėvo dienos patikrintos, kad visada būtų sekmadienis nuo 2024 iki 2040 metų.
@@ -138,12 +200,13 @@ Visas 2026 m. sąrašas ir visi lietuviški pavadinimai įrašyti į testus.
 
 Švenčių sąrašas ir lietuviškos rašybos formos sutikrintos su Darbo kodekso 123
 straipsnio tekstu ir atskirai peržiūrėtos gimtakalbio lietuvio 2026 m. rugsėjo
-mėn. Ta peržiūra patvirtino tris dalykus, kurie bibliotekoje jau buvo įgyvendinti,
-bet iki tol neturėjo šaltinio:
+mėn. Ta peržiūra patvirtino tris dalykus, kurie bibliotekoje jau buvo
+įgyvendinti, bet iki tol neturėjo šaltinio:
 
 - šešiolikos dienų sąrašas yra **išsamus**;
 - Tėvo diena yra **pirmasis birželio sekmadienis** (2026 m. birželio 7 d.), o ne
-  birželio 1 d., kaip teigė vienas šaltinis — 2026 m. birželio 1 d. yra pirmadienis;
+  birželio 1 d., kaip teigė vienas šaltinis — 2026 m. birželio 1 d. yra
+  pirmadienis;
 - su savaitgaliu sutampanti šventė **į kitą darbo dieną neperkeliama**.
 
 0.1.1 versijoje pagal įstatymo formuluotę pataisyti šeši lietuviški pavadinimai;
@@ -151,11 +214,19 @@ svarbiausi — `Visų šventųjų` → **`Visų Šventųjų`** ir liepos 6 d. pa
 grąžinta dalis `ir Tautiškos giesmės diena`. Nė viena data nepasikeitė.
 
 Naudojant teisiniais ar finansiniais tikslais, datas rekomenduojame pasitikrinti
-Darbo kodekse. Pastabas ir pataisymus mielai priimame.
+Darbo kodekse. Pastabas ir pataisymus mielai priimame — žr.
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Susiję projektai
+---
 
-- [aion-indian-market-calendar](https://pypi.org/project/aion-indian-market-calendar/) — Indijos rinkos kalendorius
+## Related · Susiję projektai
+
+- [aion-indian-market-calendar](https://pypi.org/project/aion-indian-market-calendar/) — the Indian sibling · Indijos rinkos kalendorius
 - [aion-indian-market-intelligence](https://pypi.org/project/aion-indian-market-intelligence/)
+- Source · Kodas: [github.com/AION-Analytics-India/aion-lithuanian-market-calendar](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar)
+
+MIT licensed. Built by **AION Analytics (India)**, an independent India-based
+firm, not affiliated with Aion Analytics LLC (United States) or AION Labs
+(Israel).
 
 MIT licencija. Sukūrė **AION Analytics (India)**.
