@@ -4,6 +4,7 @@
 **Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Jo niekada nereikia atnaujinti.**
 
 [![PyPI](https://img.shields.io/pypi/v/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
+[![AION Analytics (India)](https://img.shields.io/badge/AION-Analytics%20(India)-00D4FF)](https://dashboard.aiondashboard.site/open-source/lithuanian-market-calendar)
 [![Downloads](https://static.pepy.tech/badge/aion-lithuanian-market-calendar)](https://pepy.tech/project/aion-lithuanian-market-calendar)
 [![Python](https://img.shields.io/pypi/pyversions/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
