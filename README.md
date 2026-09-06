@@ -439,3 +439,9 @@ firm, not affiliated with Aion Analytics LLC (United States) or AION Labs
 (Israel).
 
 MIT licencija. Sukūrė **AION Analytics (India)**.
+
+---
+
+**We're hiring a communication architect.** We don't read CVs — we read code. The challenge *is* the application: read this package, then explain it to someone who has never heard of us. [The full challenge](https://dashboard.aiondashboard.site/careers).
+
+**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://dashboard.aiondashboard.site/careers).

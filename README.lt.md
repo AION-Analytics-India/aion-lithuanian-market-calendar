@@ -230,3 +230,7 @@ firm, not affiliated with Aion Analytics LLC (United States) or AION Labs
 (Israel).
 
 MIT licencija. Sukūrė **AION Analytics (India)**.
+
+---
+
+**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://dashboard.aiondashboard.site/careers).
