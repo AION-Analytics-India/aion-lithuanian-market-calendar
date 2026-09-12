@@ -67,7 +67,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 #: Nasdaq Vilnius continuous trading, local time. Kept deliberately simple:
 #: session times are the one part of an exchange calendar that does change by
