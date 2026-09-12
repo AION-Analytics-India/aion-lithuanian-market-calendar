@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.0.1 — unreleased
+
+**No functional change.** This release exists only to establish the trusted
+publishing path.
+
+1.0.0 was uploaded manually with an API token, which means PyPI already holds
+that version and no workflow can replace it — PyPI versions are immutable. So the
+first release actually produced by GitHub Actions has to be a new number, and
+this is it.
+
+If you are on 1.0.0 there is nothing here for you. Upgrade when 1.1.0 arrives.
+
+---
+
 ## 1.0.0 — 2026-09-12
 
 First stable release. **It contains a correctness fix that changes answers**, so
