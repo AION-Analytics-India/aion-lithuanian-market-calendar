@@ -42,7 +42,7 @@ def test_the_bundled_data_verifies():
 
 
 def test_a_missing_manifest_fails_verification(tmp_path):
-    (tmp_path / "lt-2026.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "holidays_2026.json").write_text("{}", encoding="utf-8")
     ok, reason = store._verify(tmp_path)
     assert not ok and "missing" in reason
 
@@ -51,7 +51,7 @@ def test_a_tampered_file_fails_verification(tmp_path):
     """The hash is the whole point: data that does not match its manifest is
     indistinguishable from data someone edited, and both are refused."""
     directory = _copy_bundled(tmp_path / "d")
-    target = directory / "lt-2026.json"
+    target = directory / "holidays_2026.json"
     payload = json.loads(target.read_text(encoding="utf-8"))
     payload["exchange_holidays"].append("2026-07-04")
     target.write_text(json.dumps(payload), encoding="utf-8")
@@ -157,7 +157,7 @@ def test_a_newer_remote_that_verifies_is_adopted(monkeypatch, tmp_path):
 
     # Add a closure the bundled data does not have, then rebuild the manifest
     # exactly as the maintainer tooling would.
-    target = published / "lt-2026.json"
+    target = published / "holidays_2026.json"
     payload = json.loads(target.read_text(encoding="utf-8"))
     payload["exchange_holidays"] = sorted(set(payload["exchange_holidays"]) | {"2026-07-04"})
     # The per-venue list is authoritative when present, so a date added only to
@@ -177,7 +177,13 @@ def test_a_newer_remote_that_verifies_is_adopted(monkeypatch, tmp_path):
     (published / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
     def fake_fetch(url, timeout=5):
-        return (published / url.rsplit("/", 1)[-1]).read_bytes()
+        # Strip the cache-busting query, as any real host does when resolving a
+        # path. The client appends ?v=<manifest last_updated> so that a payload
+        # is always fetched against the manifest that asked for it -- GitHub raw
+        # caches paths independently and will otherwise serve a fresh payload
+        # beside a stale manifest for a few minutes after a push.
+        name = url.rsplit("/", 1)[-1].split("?", 1)[0]
+        return (published / name).read_bytes()
 
     monkeypatch.setattr(store, "_fetch", fake_fetch)
     assert "updated to" in store.refresh(force=True)
@@ -202,3 +208,39 @@ def test_status_tells_a_caller_what_it_is_running_on():
     assert status["source"] in {"bundled", "cache", "rule-only"}
     assert status["rule_only"] is False
     assert 2026 in status["years"]
+
+
+def test_a_stale_manifest_beside_a_fresh_payload_is_refused(monkeypatch, tmp_path):
+    """GitHub raw caches paths independently.
+
+    Observed 2026-09-12: minutes after a push, raw served holidays_2026.json
+    from the new commit and manifest.json from the previous one. The pair does
+    not verify, and refusing is correct -- adopting a payload whose hash nobody
+    vouched for is exactly the 2026-06-26 failure.
+    """
+    monkeypatch.delenv("AION_LT_CALENDAR_OFFLINE", raising=False)
+    stale = json.loads((store.BUNDLED_DIR / "manifest.json").read_text(encoding="utf-8"))
+    stale["last_updated"] = "2099-01-01T00:00:00+00:00"      # newer, so it is tried
+    stale["files"] = {k: "0" * 64 for k in stale["files"]}   # but hashes from nowhere
+
+    def fake_fetch(url, timeout=5):
+        if "manifest.json" in url:
+            return json.dumps(stale).encode()
+        name = url.rsplit("/", 1)[-1].split("?", 1)[0]
+        return (store.BUNDLED_DIR / name).read_bytes()
+
+    monkeypatch.setattr(store, "_fetch", fake_fetch)
+    assert "verification failed" in store.refresh(force=True)
+    # and the good bundled data is still what answers
+    assert store.is_exchange_holiday(date(2026, 4, 3)) is True
+
+
+def test_a_failed_verification_does_not_start_the_daily_clock(monkeypatch, tmp_path):
+    """A transient CDN skew must be retried on the next call, not once tomorrow."""
+    monkeypatch.delenv("AION_LT_CALENDAR_OFFLINE", raising=False)
+    monkeypatch.setattr(store, "_fetch", lambda *a, **k: None)
+    store.refresh(force=True)
+    assert not (store.CACHE_DIR / ".last_check").exists(), (
+        "an unreachable host marked the check as done, so the client would wait "
+        "a day before trying again"
+    )

@@ -47,6 +47,7 @@ import logging
 import os
 import time as _time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, time, timezone
 from pathlib import Path
@@ -59,11 +60,47 @@ SCHEMA_VERSION = 1
 #: Shipped inside the wheel. Always present, always the fallback.
 BUNDLED_DIR = Path(__file__).resolve().parent / "data"
 
-#: Where refreshed data lands. Per-user, because a library must never need root.
-CACHE_DIR = Path(
-    os.environ.get("AION_LT_CALENDAR_CACHE")
-    or (Path.home() / ".cache" / "aion_lt_calendar")
-)
+def _default_cache_dir() -> Path:
+    """Where refreshed data lands. Per-user; a library must never need root.
+
+    Honours XDG_CACHE_HOME, because that is the documented way for a user to say
+    where caches go and ignoring it is how a library ends up writing somewhere
+    the user did not expect.
+
+    Falls back to a temp directory when the preferred location cannot be
+    created. That is not hypothetical: on the machine this was developed on,
+    ``~/.cache`` is owned by root -- something ran under sudo once -- so nothing
+    running as the user can create a directory inside it. Without a fallback,
+    auto-update would be permanently and *silently* off on that machine, which is
+    precisely the failure this design exists to prevent. A temp directory loses
+    the cache on reboot, which costs one extra fetch and is strictly better than
+    never updating.
+    """
+    override = os.environ.get("AION_LT_CALENDAR_CACHE")
+    if override:
+        return Path(override).expanduser()
+    xdg = os.environ.get("XDG_CACHE_HOME")
+    base = Path(xdg).expanduser() if xdg else Path.home() / ".cache"
+    preferred = base / "aion_lt_calendar"
+    try:
+        preferred.mkdir(parents=True, exist_ok=True)
+        probe = preferred / ".writable"
+        probe.write_text("", encoding="utf-8")
+        probe.unlink()
+        return preferred
+    except OSError:
+        import tempfile
+        fallback = Path(tempfile.gettempdir()) / f"aion_lt_calendar-{os.getuid()}"
+        log.warning(
+            "Cannot write to %s, so refreshed holiday data will be cached in %s "
+            "and lost on reboot. Auto-update still works; it just re-fetches more "
+            "often. Set AION_LT_CALENDAR_CACHE to choose somewhere writable.",
+            preferred, fallback,
+        )
+        return fallback
+
+
+CACHE_DIR = _default_cache_dir()
 
 #: Default remote. GitHub raw rather than a vanity domain: it is free, it is
 #: versioned in the same repository as the code, anyone can audit what changed
@@ -72,7 +109,7 @@ CACHE_DIR = Path(
 REMOTE_BASE = os.environ.get(
     "AION_LT_CALENDAR_URL",
     "https://raw.githubusercontent.com/AION-Analytics-India/"
-    "aion-lithuanian-market-calendar/main/data",
+    "aion-market-calendar-data/main/lt",
 ).rstrip("/")
 
 #: How long a refresh check is considered fresh. A holiday announced today is
@@ -159,6 +196,15 @@ def _due_for_check() -> bool:
 
 
 def _mark_checked() -> None:
+    """Start the daily clock. Called only on a conclusive outcome.
+
+    Deliberately NOT called when a download fails verification or a host is
+    unreachable. GitHub raw caches paths independently and can serve a stale
+    manifest beside a fresh payload for a few minutes after a push -- observed
+    on 2026-09-12. Marking that as "checked today" made a client wait a full day
+    for data that was already published. A transient failure should be retried
+    on the next call, not once tomorrow.
+    """
     try:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         (CACHE_DIR / ".last_check").write_text(
@@ -179,7 +225,6 @@ def refresh(force: bool = False) -> str:
     if not force and not _due_for_check():
         return "checked recently"
 
-    _mark_checked()
     raw = _fetch(f"{REMOTE_BASE}/manifest.json")
     if raw is None:
         _warn_once("unreachable", "Holiday data host unreachable; using bundled data.")
@@ -198,6 +243,7 @@ def refresh(force: bool = False) -> str:
     except (OSError, json.JSONDecodeError):
         local = {}
     if not force and str(remote.get("last_updated", "")) <= str(local.get("last_updated", "")):
+        _mark_checked()
         return "already current"
 
     # Download into a staging directory and only swap once every hash verifies.
@@ -206,8 +252,24 @@ def refresh(force: bool = False) -> str:
     staging = CACHE_DIR / ".staging"
     try:
         staging.mkdir(parents=True, exist_ok=True)
+        # Fetch each payload keyed to the manifest we just read.
+        #
+        # GitHub raw caches per path for a few minutes and the paths expire
+        # independently, so immediately after a push it will happily serve a
+        # fresh payload alongside a stale manifest -- observed on 2026-09-12,
+        # manifest two minutes behind its own data. The hash check caught it and
+        # refused, which is correct but means a client hitting that window waits
+        # a day for data that is already published.
+        #
+        # Appending the manifest's own version pins the payload to the manifest
+        # that asked for it: a stale manifest now fetches its matching stale
+        # payload, which verifies and is merely a little old, instead of a
+        # mismatched pair that verifies against nothing. Consistent-and-behind
+        # beats inconsistent-and-refused.
+        version = str(remote.get("last_updated") or remote.get("dataset_version") or "")
+        suffix = f"?v={urllib.parse.quote(version)}" if version else ""
         for name in remote.get("files", {}):
-            body = _fetch(f"{REMOTE_BASE}/{name}")
+            body = _fetch(f"{REMOTE_BASE}/{name}{suffix}")
             if body is None:
                 return f"could not download {name}"
             (staging / name).write_bytes(body)
@@ -220,12 +282,19 @@ def refresh(force: bool = False) -> str:
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
         for item in staging.iterdir():
             item.replace(CACHE_DIR / item.name)
+        _mark_checked()
         _state["loaded"] = False          # force a reload on next read
         log.info("Holiday data updated to %s", remote.get("last_updated"))
         return f"updated to {remote.get('last_updated')}"
     except OSError as exc:
-        log.debug("could not stage holiday data: %s", exc)
-        return "could not write cache"
+        # Loud, not debug. A cache that cannot be written means auto-update is
+        # off, and an update that is silently off is the thing this module was
+        # written to prevent.
+        _warn_once("nocache",
+                   "Could not write refreshed holiday data to %s (%s); continuing "
+                   "with the bundled data. Set AION_LT_CALENDAR_CACHE to a "
+                   "writable path to enable updates.", CACHE_DIR, exc)
+        return f"could not write cache: {exc}"
 
 
 # --------------------------------------------------------------------------
