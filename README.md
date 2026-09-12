@@ -543,6 +543,57 @@ Darbo kodekse. Pastabas ir pataisymus mielai priimame — žr.
 
 ---
 
+
+## Holiday data updates itself
+
+**New holidays are picked up automatically. You do not need to upgrade the
+package.**
+
+Holiday and closure data is published separately from the code, in
+[`aion-market-calendar-data`](https://github.com/AION-Analytics-India/aion-market-calendar-data)
+under [`lt/`]( https://github.com/AION-Analytics-India/aion-market-calendar-data/tree/main/lt).
+Every wheel bundles a copy as the fallback, and the library checks for a newer
+one at most once a day.
+
+An exchange closes when it announces it will, and a government can declare a day
+of mourning at a week's notice. A library that could only learn about those
+through a release would be quietly wrong for however long it took someone to
+notice — and "quietly wrong" is the failure a calendar exists to prevent.
+
+```bash
+AION_LT_CALENDAR_OFFLINE=1        # disable all network access
+AION_LT_CALENDAR_URL=https://…    # serve the data from somewhere else
+AION_LT_CALENDAR_CACHE=/path      # where refreshed data is cached
+```
+
+The cache honours `XDG_CACHE_HOME`, and falls back to a temp directory if neither
+that nor `~/.cache` is writable — losing the cache on reboot costs one extra
+fetch and is better than silently never updating.
+
+## Security
+
+Every data file is verified against a SHA-256 listed in a signed manifest.
+Downloads land in a staging directory first; the swap into place happens **only
+if every file verifies**, and it is atomic. One mismatch and nothing is adopted.
+
+This is not ceremony. A refresh without integrity checking once wrote a
+105-byte fragment over a 117 KB data file and wiped a production component. The
+guard added at the time checked a size floor and a few expected keys, which stops
+that one payload and no other. A hash stops all of them.
+
+If anything fails — offline, a proxy, DNS, a host serving nonsense, a hash that
+does not match — the library keeps the bundled data, logs once, and carries on.
+It never raises and never blocks.
+
+## Privacy
+
+**No telemetry, no analytics, no identifiers.** The only outbound request this
+package makes is fetching the holiday data described above, and it sends a
+`User-Agent` naming the package and version — which every HTTP client sends — and
+nothing else. No install id, no timestamp, no machine information.
+
+Set `AION_LT_CALENDAR_OFFLINE=1` to disable network access entirely.
+
 ## Related · Susiję projektai
 
 - [aion-indian-market-calendar](https://pypi.org/project/aion-indian-market-calendar/) — the Indian sibling · Indijos rinkos kalendorius
