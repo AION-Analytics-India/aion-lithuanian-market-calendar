@@ -1,5 +1,11 @@
 from datetime import date
 import pytest
+
+
+@pytest.fixture(autouse=True)
+def _offline(monkeypatch):
+    """No test touches the network; a suite that needs a host fails on a plane."""
+    monkeypatch.setenv("AION_LT_CALENDAR_OFFLINE", "1")
 from aion_lithuanian_market_calendar import (
     easter_sunday, holidays, holiday_on, observances, is_public_holiday,
     is_business_day, next_business_day, previous_business_day,
@@ -55,8 +61,16 @@ def test_business_days_between():
     assert business_days_between("2026-01-01", "2026-01-08") == 4
 
 def test_market_rejects_unknown_venue():
+    """Changed in 1.0.0: XETR is now a supported venue.
+
+    Until 1.0.0 this package covered XVIL alone and raised on anything else, so
+    this test asserted that XETR was rejected. The EU venue layer makes it valid.
+    Genuinely unknown codes still raise, which is the part worth keeping.
+    """
     with pytest.raises(ValueError):
-        is_market_open("2026-06-10", market="XETR")
+        is_market_open("2026-06-10", market="NOT_A_REAL_MIC")
+    # No longer raises: Xetra is a known venue as of 1.0.0.
+    is_market_open("2026-06-10", market="XETR")
 
 def test_market_closed_on_holiday():
     assert not is_market_open("2026-02-16")

@@ -7,3 +7,6 @@ dist/
 .venv/
 venv/
 .DS_Store
+
+# Maintainer tooling output
+.pytest_cache/

@@ -26,9 +26,13 @@ MIT licensed. AION Analytics (India).
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from typing import Iterable
 
+from . import store
 from .holidays import Holiday, Observance, easter_sunday, holiday_on, holidays, observances
+from .sessions import is_open, is_trading_day, next_trading_day, session_bounds, to_venue_time
+from .venues import VENUES, Venue, resolve, venues
 
 __all__ = [
     "Holiday",
@@ -45,10 +49,25 @@ __all__ = [
     "business_days_between",
     "is_market_open",
     "holidays_between",
+    # Sessions, timezone-correct. New in 1.0.0.
+    "is_open",
+    "is_trading_day",
+    "next_trading_day",
+    "session_bounds",
+    "to_venue_time",
+    # European venues, rules only.
+    "Venue",
+    "VENUES",
+    "venues",
+    "resolve",
+    # Holiday data, its manifest and its refresh.
+    "store",
+    "data_status",
+    "refresh_data",
     "__version__",
 ]
 
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 #: Nasdaq Vilnius continuous trading, local time. Kept deliberately simple:
 #: session times are the one part of an exchange calendar that does change by
@@ -118,20 +137,44 @@ def business_days_between(start: date | datetime | str, end: date | datetime | s
 
 
 def is_market_open(at: date | datetime | str | None = None, *, market: str = "XVIL") -> bool:
-    """True during Nasdaq Vilnius continuous trading on a working day.
+    """True during continuous trading at the venue.
 
-    `market` accepts the MIC code XVIL. Passing a date rather than a datetime
-    tests the trading day only, ignoring the time of day.
+    .. deprecated:: 1.0.0
+       Use :func:`is_open`, which takes the venue as ``venue=`` and requires a
+       timezone-aware datetime.
+
+    **This function was wrong before 1.0.0** and the fix changes its answers. It
+    used to compare the caller's wall clock against 10:00-15:55 without
+    converting anything, so the same instant returned different results depending
+    on which timezone it was expressed in — correct in Lithuania, wrong
+    everywhere else. It now converts to the venue's own zone first.
+
+    A naive datetime is still accepted here, and interpreted as venue-local,
+    purely so that code written against 0.x does not break on import. That
+    interpretation is a guess. :func:`is_open` refuses it instead, which is why
+    new code should use that.
     """
-    if market.upper() not in {"XVIL", "VILNIUS", "NASDAQ_VILNIUS"}:
-        raise ValueError(f"unknown market {market!r}; this package covers XVIL")
+    venue = resolve(market)
     if isinstance(at, datetime):
-        if not is_business_day(at.date()):
-            return False
-        opens = at.replace(hour=_MARKET_OPEN[0], minute=_MARKET_OPEN[1], second=0, microsecond=0)
-        closes = at.replace(hour=_MARKET_CLOSE[0], minute=_MARKET_CLOSE[1], second=0, microsecond=0)
-        return opens <= at <= closes
-    return is_business_day(at)
+        if at.tzinfo is None:
+            at = at.replace(tzinfo=ZoneInfo(venue.timezone))
+        return is_open(at, venue=venue.mic)
+    return is_trading_day(_as_date(at), venue=venue.mic)
+
+
+def data_status() -> dict:
+    """Where the holiday data came from and how fresh it is.
+
+    Check ``rule_only`` before trusting an exchange-holiday answer: True means no
+    verified data loaded, so weekends and computed public holidays still apply
+    but exchange closures are unknown.
+    """
+    return store.status()
+
+
+def refresh_data(force: bool = False) -> str:
+    """Fetch newer holiday data now rather than waiting for the daily check."""
+    return store.refresh(force=force)
 
 
 def holidays_between(start: date | datetime | str, end: date | datetime | str) -> Iterable[Holiday]:

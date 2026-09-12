@@ -1,7 +1,12 @@
 # aion-lithuanian-market-calendar
 
-**Lithuanian public holiday, bank and market calendar. Never needs updating.**
-**Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Jo niekada nereikia atnaujinti.**
+**Lithuanian and European market calendar. Timezone-correct trading sessions for
+19 EU venues, Lithuanian holidays computed from the rule, and exchange holiday
+data that updates itself without a release.**
+
+**Lietuvos ir Europos rinkų kalendorius. Teisingos laiko juostos prekybos sesijos
+19 ES biržų, apskaičiuotos Lietuvos šventės ir biržų švenčių duomenys, kurie
+atsinaujina patys.**
 
 [![PyPI](https://img.shields.io/pypi/v/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
 [![AION Analytics (India)](https://img.shields.io/badge/AION-Analytics%20(India)-00D4FF)](https://dashboard.aiondashboard.site/open-source/lithuanian-market-calendar)
@@ -33,7 +38,117 @@ holiday_on("2026-06-24")
 #         name_lt='Rasos ir Joninių diena')
 ```
 
-No API key. No network call. No configuration. Zero dependencies.
+No API key. No configuration. No runtime dependencies (`tzdata` on Windows only).
+
+### Trading sessions — read this if you upgraded from 0.x
+
+```python
+from datetime import datetime, timezone
+from aion_lithuanian_market_calendar import is_open
+
+is_open(datetime.now(timezone.utc))                      # Nasdaq Vilnius
+is_open(datetime.now(timezone.utc), venue="XETRA")       # Frankfurt
+is_open(datetime.now(timezone.utc), venue="XPAR")        # Euronext Paris
+```
+
+**Pass a timezone-aware datetime.** A naive one raises, on purpose — see below.
+
+> ### ⚠ `is_market_open` was wrong before 1.0.0
+>
+> It compared your wall clock against 10:00–15:55 **without converting
+> timezones**. The same instant returned different answers depending on how you
+> expressed it:
+>
+> | the same moment, written three ways | 0.x | 1.0.0 |
+> | --- | --- | --- |
+> | `12:00 Europe/Vilnius` | ✅ True | ✅ True |
+> | `09:00 UTC` | ❌ **False** | ✅ True |
+> | `14:30 Asia/Kolkata` | ⚠️ True *by luck* | ✅ True |
+>
+> If you called it with anything other than Lithuanian local time, **you were
+> getting wrong answers.** If you compensated by shifting your datetimes before
+> calling, remove that workaround — it will now double-count.
+>
+> `is_market_open` still works and now converts correctly. New code should use
+> `is_open`, which takes `venue=` and refuses naive datetimes instead of guessing
+> what they meant.
+
+### European venues
+
+19 venues, rules only — session times, weekends and daylight saving. Identified
+by MIC (ISO 10383), with friendly aliases.
+
+| | |
+| --- | --- |
+| **Nasdaq Baltic** | `XVIL` Vilnius · `XRIS` Riga · `XTAL` Tallinn |
+| **Nasdaq Nordic** | `XSTO` Stockholm · `XCSE` Copenhagen · `XHEL` Helsinki |
+| **Euronext** | `XPAR` Paris · `XAMS` Amsterdam · `XBRU` Brussels · `XLIS` Lisbon · `XMIL` Milan · `XDUB` Dublin |
+| **Deutsche Börse** | `XETR` Xetra *(alias `XETRA`, `Frankfurt`)* |
+| **Others** | `XMAD` Madrid · `XWBO` Vienna · `XWAR` Warsaw · `XPRA` Prague · `XBUD` Budapest · `ASEX` Athens |
+
+Under MiFID II passporting a Lithuanian investor can trade any EU venue, so a
+calendar scoped to Vilnius alone is incomplete for its own users.
+
+Daylight saving is handled by `zoneinfo`. **No UTC offset is written down
+anywhere in this package** — an offset in source code is wrong twice a year, and
+CI fails the build if one appears.
+
+### Holidays that update themselves
+
+**You will never need to upgrade this package for a new holiday.**
+
+Lithuanian *public* holidays are computed — twelve fixed dates, two from the
+Easter computus, two from a first-Sunday rule — so they are correct for any year,
+forever, offline.
+
+*Exchange* holidays are different. A venue closes when it says it closes, and a
+government can declare a day of mourning with a week's notice. Nothing derives
+them, so they live in JSON with a signed manifest, and that data refreshes itself:
+
+- On first use, at most once a day, the library compares its manifest against a
+  published one.
+- If the remote is newer **and every file matches its SHA-256**, the update is
+  cached under `~/.cache/aion_lt_calendar/` and used from then on.
+- If anything at all goes wrong — offline, proxy, DNS, a host serving nonsense,
+  a hash that does not match — it keeps the bundled data, logs once, and carries
+  on. It never raises and never blocks.
+
+```python
+from aion_lithuanian_market_calendar import data_status, refresh_data
+
+data_status()
+# {'source': 'bundled', 'rule_only': False, 'dataset_version': '2026.09.12', ...}
+
+refresh_data(force=True)     # check now rather than waiting for the daily check
+```
+
+**Check `rule_only` before trusting an exchange-holiday answer.** True means no
+verified data loaded: weekends and computed public holidays still apply, but
+exchange closures are unknown. The library says so rather than guessing, because
+an invented closure makes a scheduler skip a real trading day.
+
+Air-gapped? `AION_LT_CALENDAR_OFFLINE=1` disables the network entirely.
+Self-hosting the data? `AION_LT_CALENDAR_URL=https://your.host/path`.
+
+### Exchange holidays are not public holidays
+
+They overlap but they are not the same list, and conflating them is the commonest
+way to get this wrong:
+
+| | |
+| --- | --- |
+| **Good Friday** | Nasdaq Baltic closes. **Not** a Lithuanian public holiday. |
+| **Christmas Eve** | A Lithuanian statutory holiday (Šv. Kūčios) — a full closure, not an early close. |
+| **New Year's Eve** | A working day with an early close at 12:30. |
+
+```python
+from datetime import date
+from aion_lithuanian_market_calendar import store
+
+store.is_exchange_holiday(date(2026, 4, 3))       # True  — Good Friday
+store.is_public_holiday_listed(date(2026, 4, 3))  # False — not a public holiday
+store.half_day_close(date(2026, 12, 31))          # time(12, 30)
+```
 
 ### What it is for
 

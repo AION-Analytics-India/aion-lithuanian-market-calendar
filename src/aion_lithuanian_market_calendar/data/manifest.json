@@ -1,0 +1,16 @@
+{
+  "dataset_version": "2026.09.12",
+  "files": {
+    "lt-2026.json": "648f71b75919fcb29a23f93c4261e24f350eeac83a045bb1fb92c7b2dfde2a65",
+    "lt-2027.json": "0b6d24cc88e92543fa053a375d40b5818d3246e756fd2c1af9a2dbb561d13138"
+  },
+  "last_updated": "2026-09-12T05:24:56+00:00",
+  "next_review_date": "2026-10-01",
+  "note": "Public holidays are computed by the library and need no data. This file carries exchange holidays and half-days, which are announced rather than derived.",
+  "schema_version": 1,
+  "source": "https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar",
+  "years": [
+    2026,
+    2027
+  ]
+}

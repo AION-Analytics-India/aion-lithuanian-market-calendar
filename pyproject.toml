@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aion-lithuanian-market-calendar"
-version = "0.1.1"
-description = "Lithuanian public holiday, bank and market calendar. Holidays are computed, not tabulated, so it never needs updating. Names in English and Lithuanian."
+version = "1.0.0"
+description = "Lithuanian and European market calendar: timezone-correct trading sessions for 19 EU venues, computed Lithuanian holidays, and exchange holiday data that updates itself without a release."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "MIT"
@@ -15,9 +15,12 @@ keywords = [
   "lithuania", "lithuanian", "holidays", "public holidays", "bank holidays",
   "market calendar", "business days", "working days", "nasdaq vilnius", "XVIL",
   "svenciu dienos", "darbo dienos", "baltic", "europe",
+  "trading hours", "market hours", "trading sessions", "exchange calendar",
+  "euronext", "xetra", "nasdaq baltic", "nasdaq nordic", "MIC", "ISO 10383",
+  "timezone", "zoneinfo", "DST", "MiFID II", "european exchanges",
 ]
 classifiers = [
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
   "Intended Audience :: Financial and Insurance Industry",
   "Natural Language :: English",
@@ -27,12 +30,23 @@ classifiers = [
   "Topic :: Office/Business :: Financial",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dependencies = []
+# No runtime dependencies. zoneinfo is stdlib from 3.9; Windows has no system
+# tz database, so tzdata is pulled there and nowhere else.
+dependencies = ["tzdata; sys_platform == 'win32'"]
 
 [project.urls]
 Homepage = "https://dashboard.aiondashboard.site"
 Source = "https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar"
 Issues = "https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues"
 
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# The bundled holiday data and its manifest travel in the wheel. Without them
+# an installed package falls back to rule-only mode, which works but knows
+# nothing about exchange closures.
+[tool.setuptools.package-data]
+"aion_lithuanian_market_calendar" = ["data/*.json"]

@@ -47,3 +47,50 @@ By contributing you agree your work is licensed under the MIT Licence.
 
 - Package: https://pypi.org/project/aion-lithuanian-market-calendar/
 - Website: https://dashboard.aiondashboard.site
+
+## Reporting or fixing a holiday
+
+A wrong date here makes someone's settlement job run on a day the market was
+shut. It is the most valuable bug report this project can get.
+
+**By issue** — the easiest route. Give the date, the venue, and the announcement
+it comes from. The announcement matters: a date with no source cannot be checked
+by the next person and cannot be defended when a user asks where it came from.
+
+**By pull request** — use the CLI rather than editing JSON by hand, because it
+keeps the two data directories in step and records why:
+
+```bash
+python -m ingest add-holiday --date 2026-11-17 --type exchange \
+    --reason "Day of national mourning (Seimas resolution XIV-1234)"
+
+python -m ingest add-half-day --date 2026-12-31 --close 12:30 \
+    --reason "Nasdaq Baltic early close"
+
+python ingest/build_manifest.py src/aion_lithuanian_market_calendar/data
+python ingest/build_manifest.py data
+
+python -m ingest verify          # manifests match, and the data is self-consistent
+pytest -q
+```
+
+`verify` checks three things a hash cannot: that a per-venue list is not missing
+a date the global list has (the per-venue list wins, so the date would silently
+do nothing), that no day is both a full closure and a half-day, and that every
+date belongs to the year its file claims. Each of those has actually been got
+wrong here, and each was found by a failing test rather than by a user.
+
+**Never edit `manifest.json` by hand.** It exists to prove the data files are the
+ones the maintainer intended; a hash typed by a person proves nothing.
+
+## Venue hours
+
+`src/aion_lithuanian_market_calendar/venues.py` carries session rules only, and
+each entry has a `verified_on` date. If you confirm one against the venue's own
+published schedule, update that date in the same PR — an entry nobody has checked
+in two years should be treated as a guess.
+
+## Timezones
+
+No UTC offset may appear in source. `zoneinfo` or nothing; an offset written down
+is wrong twice a year, and CI fails the build if one appears.

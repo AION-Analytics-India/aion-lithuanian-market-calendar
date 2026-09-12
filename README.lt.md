@@ -1,5 +1,29 @@
 # aion-lithuanian-market-calendar
 
+> ### ⚠ Svarbu: `is_market_open` iki 1.0.0 veikė neteisingai
+>
+> Funkcija nekonvertavo laiko juostų — ji lygino jūsų vietinį laikrodį su
+> 10:00–15:55 nepaisant to, kurioje juostoje jis buvo. Tas pats laiko momentas
+> grąžindavo skirtingus atsakymus:
+>
+> | tas pats momentas | 0.x | 1.0.0 |
+> | --- | --- | --- |
+> | `12:00 Europe/Vilnius` | ✅ Taip | ✅ Taip |
+> | `09:00 UTC` | ❌ **Ne** | ✅ Taip |
+> | `14:30 Asia/Kolkata` | ⚠️ Taip *atsitiktinai* | ✅ Taip |
+>
+> Jei kvietėte ją ne Lietuvos vietiniu laiku, **gaudavote klaidingus atsakymus.**
+> Jei tai kompensavote patys keisdami datas — tą apėjimą dabar reikia pašalinti.
+>
+> Naujame kode naudokite `is_open(at, venue=...)`: ji reikalauja datos su laiko
+> juosta ir nespėlioja.
+
+**Naujiena 1.0.0:** 19 ES biržų prekybos sesijos (Nasdaq Baltic ir Nordic,
+Euronext, Xetra, Madridas, Viena, Varšuva, Praha, Budapeštas, Atėnai), biržų
+šventės atskirtos nuo valstybinių, ir duomenys, kurie **atsinaujina patys — naujai
+šventei nebereikia atnaujinti paketo.**
+
+
 **Lithuanian public holiday, bank and market calendar. Never needs updating.**
 **Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Jo niekada nereikia atnaujinti.**
 
