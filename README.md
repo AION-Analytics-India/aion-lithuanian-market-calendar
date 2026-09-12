@@ -18,6 +18,35 @@ atsinaujina patys.**
 
 ---
 
+
+## What changed in 1.0.0
+
+Full detail in [`CHANGELOG.md`](CHANGELOG.md). First stable release, and it
+**contains a correctness fix that changes answers**.
+
+**`is_market_open` was wrong before 1.0.0.** It compared your wall clock against
+the session window without converting timezones, so the same instant answered
+differently depending on how it was written — correct in Lithuania, wrong
+everywhere else. If you passed anything but Lithuanian local time, you were
+getting wrong answers; if you compensated by shifting datetimes, remove that
+workaround.
+
+**19 European venues**, rules only — Nasdaq Baltic and Nordic, Euronext, Xetra,
+Madrid, Vienna, Warsaw, Prague, Budapest, Athens. Under MiFID II passporting a
+Lithuanian investor can trade any of them.
+
+**Exchange holidays are now separate from public holidays.** Good Friday closes
+Nasdaq Baltic and is not a Lithuanian public holiday; Christmas Eve is statutory
+and so is a full closure, not an early close.
+
+**Holiday data updates itself**, hash-verified, without a release. No telemetry,
+no analytics, no identifiers.
+
+```bash
+pip install --upgrade aion-lithuanian-market-calendar
+```
+
+
 ## English
 
 *Lietuviškai — [žemiau](#lietuviškai) / [README.lt.md](README.lt.md)*
