@@ -10,3 +10,28 @@ venv/
 
 # Maintainer tooling output
 .pytest_cache/
+
+# Credentials — never in a repository. The only place a token lives on this
+# machine is ~/.aion/api_tokens.json, outside every working tree, and the only
+# way one reaches a command is through an environment variable at the moment it
+# is needed. A token in a repo survives every later attempt to delete it,
+# because git keeps history.
+api_tokens.json
+api_tokens.json.bak*
+*.pat
+*_token.json
+*_tokens.json
+*credentials*.json
+.env
+.env.*
+!.env.example
+!.env.local.example
+.netrc
+*.pem
+*.key
+!**/public*.key
+
+# ingest/ and data/ moved to AION-Analytics-India/aion-market-calendar-data in
+# 1.0.0. One manifest schema means one ingestion tool maintains both calendars;
+# two copies would drift, which is how these packages ended up with different
+# update mechanisms in the first place.
