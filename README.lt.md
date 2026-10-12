@@ -20,12 +20,12 @@
 
 **Naujiena 1.0.0:** 19 ES biržų prekybos sesijos (Nasdaq Baltic ir Nordic,
 Euronext, Xetra, Madridas, Viena, Varšuva, Praha, Budapeštas, Atėnai), biržų
-šventės atskirtos nuo valstybinių, ir duomenys, kurie **atsinaujina patys — naujai
-šventei nebereikia atnaujinti paketo.**
+šventės atskirtos nuo valstybinių, o biržų duomenis galima atnaujinti atskirai
+nuo paketo. Nepavykus atnaujinti, naudojami turimi duomenys.
 
 
-**Lithuanian public holiday, bank and market calendar. Never needs updating.**
-**Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Jo niekada nereikia atnaujinti.**
+**Lithuanian public holiday, bank and market calendar. Check data coverage and current exchange notices.**
+**Lietuvos švenčių, banko ir rinkos darbo dienų kalendorius. Tikrinkite duomenų aprėptį ir naujausius biržų pranešimus.**
 
 [![PyPI](https://img.shields.io/pypi/v/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
 [![Downloads](https://static.pepy.tech/badge/aion-lithuanian-market-calendar)](https://pepy.tech/project/aion-lithuanian-market-calendar)
@@ -56,8 +56,10 @@ holiday_on("2026-06-24")
 #         name_lt='Rasos ir Joninių diena')
 ```
 
-Nereikia API rakto. Nereikia interneto ryšio. Nereikia jokių nustatymų. Jokių
-priklausomybių.
+Nereikia API rakto. Paketas gali veikti neprisijungęs prie interneto.
+Pagal numatytuosius nustatymus gali būti tikrinami biržų duomenų atnaujinimai.
+Nustatykite `AION_LT_CALENDAR_OFFLINE=1`, kad išjungtumėte tinklo užklausas.
+Windows aplinkoje naudojama `tzdata` priklausomybė.
 
 ### Kam ji skirta
 
@@ -83,20 +85,21 @@ diena?"* ir kaskart gauti tą patį atsakymą.
 
 ### Kuo ji naudinga
 
-**Ji teisinga be jokios priežiūros.** Visos Lietuvos švenčių dienos yra
+**Lietuvos švenčių datos apskaičiuojamos pagal paketo taisykles.** Visos Lietuvos švenčių dienos yra
 apskaičiuojamos: dvylika yra fiksuotos datos, dvi priklauso nuo Velykų, dvi yra
 pirmasis mėnesio sekmadienis. Todėl biblioteka jas *apskaičiuoja*, o ne saugo
-sąrašą, kuris kasmet gruodį pasensta. Įdiekite vieną kartą ir ji veiks 2027,
-2040 ir bet kuriais vėlesniais metais, be interneto ryšio.
+sąrašą, kuris kasmet gruodį pasensta. Skaičiavimai gali veikti be interneto ryšio. Pasikeitus teisės aktams,
+taisykles reikia peržiūrėti.
 
-Tuo ji skiriasi nuo rinkų, kurių šventės skelbiamos kasmet ir tikrai negali būti
-apskaičiuotos — mūsų [Indijos rinkos
-kalendorius](https://pypi.org/project/aion-indian-market-calendar/) būtent dėl
-to platinamas su duomenų failu. Lietuvai jo nereikia, todėl jo ir nėra.
+Valstybinės šventės ir biržų uždarymo dienos nėra tas pats. Biržų duomenys
+platinami atskirai nuo švenčių skaičiavimo taisyklių. Duomenų būseną galima
+patikrinti naudojant `data_status()`.
 
-**Ji nesijungia į internetą.** Jokių tinklo užklausų, todėl ji veikia
-izoliuotame atsiskaitymų serveryje ar CI aplinkoje be išorinio ryšio ir negali
-sugesti dėl to, kad trečiosios šalies švenčių API neveikia ar apribojo užklausas.
+**Tinklo užklausas galima išjungti.** Naudokite
+`AION_LT_CALENDAR_OFFLINE=1` izoliuotoje aplinkoje arba CI. Neprisijungus
+naudojami turimi duomenys; naujausi biržų pranešimai gali būti neįtraukti.
+Prekybos sesijų rezultatai nėra nepriklausomas realiosios biržos būsenos
+patvirtinimas.
 
 **Ji dvikalbė, todėl tinka rodyti naudotojui.** Kiekviena šventė turi ir
 `name_en`, ir `name_lt` pagal Darbo kodekso formuluotę, todėl lietuvis klientas
@@ -249,12 +252,12 @@ Darbo kodekse. Pastabas ir pataisymus mielai priimame — žr.
 - [aion-indian-market-intelligence](https://pypi.org/project/aion-indian-market-intelligence/)
 - Source · Kodas: [github.com/AION-Analytics-India/aion-lithuanian-market-calendar](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar)
 
-MIT licensed. Built by **AION Analytics (India)**, an independent India-based
+MIT licensed. Built by **AION Analytics**, an independent India-based
 firm, not affiliated with Aion Analytics LLC (United States) or AION Labs
 (Israel).
 
-MIT licencija. Sukūrė **AION Analytics (India)**.
+MIT licencija. Sukūrė **AION Analytics**.
 
 ---
 
-**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://dashboard.aiondashboard.site/careers).
+**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://aionanalytics.in/careers).
