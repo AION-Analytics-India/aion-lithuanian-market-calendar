@@ -9,7 +9,7 @@ data that updates itself without a release.**
 atsinaujina patys.**
 
 [![PyPI](https://img.shields.io/pypi/v/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
-[![AION Analytics (India)](https://img.shields.io/badge/AION-Analytics%20(India)-00D4FF)](https://dashboard.aiondashboard.site/open-source/lithuanian-market-calendar)
+[![AION Analytics (India)](https://img.shields.io/badge/AION-Analytics%20(India)-00D4FF)](https://aionanalytics.in/open-source/lithuanian-market-calendar)
 [![Downloads](https://static.pepy.tech/badge/aion-lithuanian-market-calendar)](https://pepy.tech/project/aion-lithuanian-market-calendar)
 [![Python](https://img.shields.io/pypi/pyversions/aion-lithuanian-market-calendar)](https://pypi.org/project/aion-lithuanian-market-calendar/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -637,6 +637,6 @@ MIT licencija. Sukūrė **AION Analytics (India)**.
 
 ---
 
-**We're hiring a communication architect.** We don't read CVs — we read code. The challenge *is* the application: read this package, then explain it to someone who has never heard of us. [The full challenge](https://dashboard.aiondashboard.site/careers).
+**We're hiring a communication architect.** We don't read CVs — we read code. The challenge *is* the application: read this package, then explain it to someone who has never heard of us. [The full challenge](https://aionanalytics.in/careers).
 
-**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://dashboard.aiondashboard.site/careers).
+**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://aionanalytics.in/careers).
