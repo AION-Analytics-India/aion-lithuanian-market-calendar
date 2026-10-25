@@ -33,8 +33,29 @@ from . import store
 from .holidays import Holiday, Observance, easter_sunday, holiday_on, holidays, observances
 from .sessions import is_open, is_trading_day, next_trading_day, session_bounds, to_venue_time
 from .venues import VENUES, Venue, resolve, venues
+from . import microstructure
+from .microstructure import (
+    CLOSED,
+    CONTINUOUS,
+    TargetClosingDay,
+    get_market_phase,
+    is_settlement_day,
+    next_settlement_day,
+    phase_name,
+    target_closing_days,
+)
 
 __all__ = [
+    # Settlement (TARGET) and intraday phase. New in 1.1.0.
+    "microstructure",
+    "CLOSED",
+    "CONTINUOUS",
+    "TargetClosingDay",
+    "get_market_phase",
+    "is_settlement_day",
+    "next_settlement_day",
+    "phase_name",
+    "target_closing_days",
     "Holiday",
     "Observance",
     "easter_sunday",
@@ -67,7 +88,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 #: Nasdaq Vilnius continuous trading, local time. Kept deliberately simple:
 #: session times are the one part of an exchange calendar that does change by

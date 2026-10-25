@@ -57,22 +57,27 @@ shut. It is the most valuable bug report this project can get.
 it comes from. The announcement matters: a date with no source cannot be checked
 by the next person and cannot be defended when a user asks where it came from.
 
-**By pull request** — use the CLI rather than editing JSON by hand, because it
-keeps the two data directories in step and records why:
+**By pull request to the data repository.** Since 1.0.0 the holiday data and the
+`ingest` tool live in
+[aion-market-calendar-data](https://github.com/AION-Analytics-India/aion-market-calendar-data),
+which is what installed packages refresh from. Use its CLI rather than editing JSON
+by hand, because it records why. Run these there, not in this repository:
 
 ```bash
-python -m ingest add-holiday --date 2026-11-17 --type exchange \
-    --reason "Day of national mourning (Seimas resolution XIV-1234)"
+python -m ingest add-holiday --package lt --date YYYY-MM-DD --type exchange \
+    --reason "<the announcement, with its reference>"
 
-python -m ingest add-half-day --date 2026-12-31 --close 12:30 \
-    --reason "Nasdaq Baltic early close"
-
-python ingest/build_manifest.py src/aion_lithuanian_market_calendar/data
-python ingest/build_manifest.py data
+python -m ingest add-half-day --package lt --date YYYY-MM-DD --close HH:MM \
+    --reason "<the announcement, with its reference>"
 
 python -m ingest verify          # manifests match, and the data is self-consistent
-pytest -q
 ```
+
+The dates are placeholders on purpose: a real-looking example date was once
+published as a closure by mistake (17 November 2026, removed on 25 October 2026).
+Never add a date to the published data to test the pipeline.
+
+In this repository, `pytest -q` covers the code and the bundled fallback copy.
 
 `verify` checks three things a hash cannot: that a per-venue list is not missing
 a date the global list has (the per-venue list wins, so the date would silently

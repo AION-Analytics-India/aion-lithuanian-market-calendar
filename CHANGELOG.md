@@ -1,6 +1,61 @@
 # Changelog
 
-## 1.0.1 — unreleased
+## 1.1.0 — unreleased
+
+### Added — settlement days and intraday phase
+
+New module `aion_lithuanian_market_calendar.microstructure`, also exported from the
+package root. No new dependency, no network access, no change to the data or to how
+it is fetched.
+
+- `is_settlement_day(day)`, `next_settlement_day(after)` and
+  `target_closing_days(year)`: euro settlement runs on TARGET (T2 and T2S), which
+  closes on New Year's Day, Good Friday, Easter Monday, 1 May, 25 and 26 December,
+  besides weekends (ECB, long-term calendar of December 2000, applying from 2002
+  until further notice). Computed, not tabulated, so correct for any year from 2002.
+  This is a different list from the Lithuanian public holidays in both directions:
+  Good Friday 2026 is a business day in Lithuania and not a settlement day;
+  16 February is a settlement day although offices are shut. Each closing day
+  carries its English and Lithuanian name.
+- `get_market_phase(at, venue="XVIL")`: `CONTINUOUS` or `CLOSED`, using the same
+  holiday, half-day and break rules as `is_open`, with a half-open window (the
+  closing minute is `CLOSED`). Auctions, pre-open and post-trading are still not
+  modelled: the published sources found disagree on them, so no phase is returned
+  for them rather than a guessed one. The phase strings match the Indian sibling
+  package. `phase_name(phase, "lt")` gives the Lithuanian display name.
+
+### Fixed
+
+- CI: the `data` job ran `python -m ingest verify`, but the `ingest` tool moved to
+  aion-market-calendar-data in 1.0.0, so the job could not pass. It now verifies
+  the bundled data against its manifest with the package's own check.
+- `CONTRIBUTING.md` now sends data changes to the data repository, where the tool
+  is, and uses placeholder dates. Its example date, 17 November 2026, was once
+  published there as a Nasdaq Baltic closure by mistake; the published data was
+  corrected on 25 October 2026 and installed copies pick that up on their next
+  daily refresh, with no release.
+- This changelog listed 1.0.1 as unreleased and had no entry for 1.0.2; both are
+  on PyPI and now dated below.
+
+The new Lithuanian names and the Lithuanian README text added in this version were
+reviewed and approved by a native speaker on 2026-10-25, against VLKK orthography and
+Bank of Lithuania and Nasdaq Vilnius terminology. One wording change followed: "Atsako"
+became "Tai nustato" in the settlement paragraph.
+
+---
+
+## 1.0.2 — 2026-10-12
+
+**No functional change.** Package metadata and documentation: the homepage, the
+author contact and the package discovery links now point to aionanalytics.in and
+the GitHub repository, and the Lithuanian README was aligned with the release
+versions.
+
+---
+
+## 1.0.1 — 2026-09-12
+
+This entry said "unreleased" until 1.1.0; 1.0.1 was published to PyPI on 2026-09-12.
 
 **No functional change.** This release exists only to establish the trusted
 publishing path.

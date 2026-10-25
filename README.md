@@ -18,6 +18,67 @@ atsinaujina patys.**
 
 ---
 
+## Where this package lives · Kur rasti paketą
+
+| | |
+|---|---|
+| PyPI | https://pypi.org/project/aion-lithuanian-market-calendar/ |
+| Source and issues · Kodas ir klaidų pranešimai | https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar |
+| Changelog · Pakeitimų žurnalas | [`CHANGELOG.md`](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/CHANGELOG.md) |
+| Product page · Produkto puslapis | https://aionanalytics.in/open-source/lithuanian-market-calendar |
+| Holiday data it refreshes from · Duomenys, iš kurių atsinaujina | https://github.com/AION-Analytics-India/aion-market-calendar-data |
+| AION community · AION bendruomenė | Telegram https://t.me/+VXWCiDgZjBI3ZjA1 · Discord https://discord.gg/Dk9Pjc9cVa |
+
+Install only from PyPI · Diekite tik iš PyPI: `pip install aion-lithuanian-market-calendar`
+
+## What changed in 1.1.0 · Kas naujo 1.1.0 versijoje
+
+**Settlement days are not business days.** Euro settlement runs on TARGET (T2 and
+T2S), which closes on New Year's Day, Good Friday, Easter Monday, 1 May, 25 and
+26 December. That is a different list from Lithuania's public holidays: Good Friday
+2026 is a business day in Lithuania with no euro settlement, and 16 February is a
+settlement day although offices are shut. `is_settlement_day`, `next_settlement_day`
+and `target_closing_days` answer it, computed for any year from 2002.
+
+**Intraday phase.** `get_market_phase(at, venue)` returns `CONTINUOUS` or `CLOSED`,
+with the same holiday, half-day and break rules as `is_open`. Auctions, pre-open and
+post-trading are not modelled, because the published sources disagree on them.
+
+**Atsiskaitymo dienos nėra darbo dienos.** Atsiskaitymai eurais vyksta per TARGET
+(T2 ir T2S), kuri nedirba Naujųjų metų dieną, Didįjį penktadienį, Velykų antrąją
+dieną, gegužės 1-ąją, gruodžio 25 ir 26 d. Tai kitas sąrašas nei Lietuvos šventės:
+2026 m. Didysis penktadienis Lietuvoje yra darbo diena, bet atsiskaitymų eurais nėra,
+o vasario 16-ąją įstaigos nedirba, tačiau TARGET atsiskaito. Tai nustato
+`is_settlement_day`, `next_settlement_day` ir `target_closing_days` — apskaičiuojama
+bet kuriems metams nuo 2002 m.
+
+**Prekybos fazė.** `get_market_phase(at, venue)` grąžina `CONTINUOUS` (nepertraukiama
+prekyba) arba `CLOSED` (prekyba nevyksta), taikant tas pačias švenčių, sutrumpintų
+dienų ir pertraukų taisykles kaip `is_open`. Aukcionai, išankstinė prekyba ir prekyba
+po uždarymo nemodeliuojami, nes skelbiami šaltiniai dėl jų nesutaria.
+
+```python
+from datetime import datetime
+from zoneinfo import ZoneInfo
+from aion_lithuanian_market_calendar import is_business_day, is_settlement_day, get_market_phase, phase_name
+
+is_business_day("2026-04-03"), is_settlement_day("2026-04-03")   # (True, False): Good Friday · Didysis penktadienis
+get_market_phase(datetime(2026, 10, 26, 12, 0, tzinfo=ZoneInfo("Europe/Vilnius")))   # "CONTINUOUS"
+phase_name("CONTINUOUS", "lt")                                     # "Nepertraukiama prekyba"
+```
+
+Filtering a pandas DataFrame · Pandas DataFrame filtravimas (pandas is not a dependency · pandas nėra priklausomybė):
+
+```python
+import pandas as pd
+from aion_lithuanian_market_calendar import is_trading_day, get_market_phase
+
+df = pd.DataFrame({"close": range(4)}, index=pd.date_range("2026-12-23 12:00", periods=4, freq="D", tz="Europe/Vilnius"))
+df = df[[is_trading_day(ts.date(), "XVIL") for ts in df.index]]   # drops 24-26 Dec · pašalina gruodžio 24-26 d.
+df["phase"] = [get_market_phase(ts.to_pydatetime(), "XVIL") for ts in df.index]
+```
+
+Full detail · Išsamiau: [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What changed in 1.0.0
 
