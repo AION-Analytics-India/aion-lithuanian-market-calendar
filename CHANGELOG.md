@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.1 (2026-11-02): daylight saving fix for Dublin, release checks repaired
+
+Replaces 1.2.0, which has a tag and never reached PyPI: its release checks failed.
+
+### Fixed
+
+- `is_daylight_saving` gave inverted answers for `XDUB` on zone database builds that record
+  Europe/Dublin with a negative winter saving, including the PyPI `tzdata` package. It now compares
+  UTC offsets. Session times were never affected.
+- Release checks: Windows checkouts no longer rewrite line endings in the hash-verified data, and the
+  no-egress test the publish workflow runs now exists.
+
+### Changed
+
+- Requires Python 3.10 or later. GitHub's current Ubuntu runner no longer offers 3.9, so 3.9 could
+  not be tested.
+
 ## 1.2.0 (2026-11-02): daylight saving state and UTC session bounds
 
 ### Added

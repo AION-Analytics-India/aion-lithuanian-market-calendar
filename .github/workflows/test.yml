@@ -15,7 +15,7 @@ jobs:
         # Windows is here on purpose: it has no system tz database, so a missing
         # tzdata dependency breaks every session check and passes everywhere else.
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.9", "3.11", "3.13"]
+        python: ["3.10", "3.11", "3.13"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

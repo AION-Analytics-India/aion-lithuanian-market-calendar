@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aion-lithuanian-market-calendar"
-version = "1.2.0"
+version = "1.2.1"
 description = "Lithuanian and European market calendar: timezone-correct trading sessions for 19 EU venues, computed Lithuanian holidays, and exchange holiday data that updates itself without a release."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "AION Analytics", email = "contact@aionanalytics.in" }]
@@ -30,7 +30,7 @@ classifiers = [
   "Topic :: Office/Business :: Financial",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-# No runtime dependencies. zoneinfo is stdlib from 3.9; Windows has no system
+# No runtime dependencies. zoneinfo is in the standard library; Windows has no system
 # tz database, so tzdata is pulled there and nowhere else.
 dependencies = ["tzdata; sys_platform == 'win32'"]
 

@@ -69,10 +69,18 @@ def is_daylight_saving(day: date | None = None, venue: str = "XVIL") -> bool:
 
     The state comes from the IANA zone database through ``zoneinfo``, so no change
     date is written in this package and later years need no upkeep.
+
+    Compares UTC offsets instead of reading ``tzinfo.dst()``. Some builds of the zone
+    database record Europe/Dublin with its summer time as standard and a negative
+    saving in winter, so ``dst()`` is inverted there. The higher offset of the year is
+    summer in every build.
     """
     market = resolve(venue)
     day = day or date.today()
-    return bool(datetime(day.year, day.month, day.day, 12, tzinfo=_zone(market)).dst())
+    zone = _zone(market)
+    noon = datetime(day.year, day.month, day.day, 12, tzinfo=zone)
+    year_offsets = [datetime(day.year, month, 1, 12, tzinfo=zone).utcoffset() for month in (1, 7)]
+    return noon.utcoffset() > min(year_offsets)
 
 
 def session_bounds_utc(day: date, venue: str = "XVIL") -> tuple[datetime, datetime] | None:

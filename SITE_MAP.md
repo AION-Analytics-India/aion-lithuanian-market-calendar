@@ -4,7 +4,7 @@ Mapped 2026-10-25 from the tracked file list, README, CHANGELOG, `pyproject.toml
 
 ## 1. High-Level Purpose
 
-An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, version `1.2.0` in `pyproject.toml`, latest on PyPI `1.1.0` until 1.2.0 is published) for the Lithuanian and European market calendar: the sixteen Lithuanian statutory holidays computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase for 19 EU venues, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.9`. Part of AION Analytics' open-source infrastructure.
+An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, version `1.2.1` in `pyproject.toml`, latest on PyPI `1.1.0` until 1.2.1 is published) for the Lithuanian and European market calendar: the sixteen Lithuanian statutory holidays computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase for 19 EU venues, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.9`. Part of AION Analytics' open-source infrastructure.
 
 Git: independent public repository on GitHub (organisation `AION-Analytics-India`), branch `main`. Releases are published only by the tag-triggered workflow.
 
@@ -25,7 +25,7 @@ aion-lithuanian-market-calendar/
 │   ├── venues.py          continuous-session rules for 19 European venues
 │   ├── store.py           holiday data, its manifest, and the refresh that needs no release
 │   └── data/              holidays_2026.json, holidays_2027.json, manifest.json
-└── tests/                 test_calendar.py, test_sessions.py, test_store.py, test_microstructure.py, test_daylight_saving.py
+└── tests/                 test_calendar.py, test_sessions.py, test_store.py, test_microstructure.py, test_daylight_saving.py, test_no_egress.py
 ```
 
 ## 3. Core Components & Scripts
@@ -40,8 +40,10 @@ aion-lithuanian-market-calendar/
 | `store.py` | Holiday data, manifest verification (`_verify`) and the optional refresh; falls back to bundled data or rule-only mode | External (only on a refresh): the public data repository `aion-market-calendar-data` over HTTPS. Env: `AION_LT_CALENDAR_URL`, `AION_LT_CALENDAR_CACHE`, `AION_LT_CALENDAR_OFFLINE` |
 | `data/holidays_2026.json`, `holidays_2027.json`, `manifest.json` | Bundled exchange holiday data (offline fallback) | Verified before use |
 | `tests/test_microstructure.py` | 18 tests: TARGET days equal the ECB's 2026 and 2027 lists, Good Friday and 16 February, names in both languages, phase boundaries, same instant in any zone, 17 November 2026 trades, naive datetimes refused | Isolated store (offline, empty cache) |
+| `tests/test_no_egress.py` | Import and ordinary questions open no network connection; run alone by the publish workflow |
+| `.gitattributes` | Keeps hash-verified JSON byte-exact on Windows checkouts |
 | `tests/test_calendar.py`, `test_sessions.py`, `test_store.py` | Holiday rules; session correctness and the 0.x timezone regression; store verification, fallback and refresh | `pytest` |
-| `.github/workflows/test.yml` | Tests on three OSes with Python 3.9, 3.11, 3.13; a `data` job that verifies the bundled manifest with `store._verify` (fixed in 1.1.0) and forbids hard-coded UTC offsets | GitHub Actions |
+| `.github/workflows/test.yml` | Tests on three OSes with Python 3.10, 3.11, 3.13; a `data` job that verifies the bundled manifest with `store._verify` (fixed in 1.1.0) and forbids hard-coded UTC offsets | GitHub Actions |
 | `.github/workflows/publish.yml` | On tag `v*`: test matrix, then publish | GitHub Actions |
 
 ## 4. External Repo Dependencies
