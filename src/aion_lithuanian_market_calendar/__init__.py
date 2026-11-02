@@ -31,7 +31,15 @@ from typing import Iterable
 
 from . import store
 from .holidays import Holiday, Observance, easter_sunday, holiday_on, holidays, observances
-from .sessions import is_open, is_trading_day, next_trading_day, session_bounds, to_venue_time
+from .sessions import (
+    is_daylight_saving,
+    is_open,
+    is_trading_day,
+    next_trading_day,
+    session_bounds,
+    session_bounds_utc,
+    to_venue_time,
+)
 from .venues import VENUES, Venue, resolve, venues
 from . import microstructure
 from .microstructure import (
@@ -74,7 +82,9 @@ __all__ = [
     "is_open",
     "is_trading_day",
     "next_trading_day",
+    "is_daylight_saving",
     "session_bounds",
+    "session_bounds_utc",
     "to_venue_time",
     # European venues, rules only.
     "Venue",
@@ -88,7 +98,7 @@ __all__ = [
     "__version__",
 ]
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 #: Nasdaq Vilnius continuous trading, local time. Kept deliberately simple:
 #: session times are the one part of an exchange calendar that does change by

@@ -1,6 +1,22 @@
 # Changelog
 
-## 1.1.0 — unreleased
+## 1.2.0 (2026-11-02): daylight saving state and UTC session bounds
+
+### Added
+
+- `is_daylight_saving(day, venue="XVIL")`: whether the venue's zone is on daylight saving
+  that day.
+- `session_bounds_utc(day, venue="XVIL")`: the day's open and close as UTC datetimes, or
+  `None` if the venue is closed. Venue hours are fixed in local time, so these move by an
+  hour at each change.
+
+Both read the IANA zone database, so no change date is written in the package. Session
+answers do not change: `is_open` and `session_bounds` already converted through `zoneinfo`.
+This package has no commodity venue, so the Indian commodity hours do not apply here.
+
+The new Lithuanian text in `README.lt.md` is awaiting review by a native speaker.
+
+## 1.1.0 (2026-10-25)
 
 ### Added — settlement days and intraday phase
 

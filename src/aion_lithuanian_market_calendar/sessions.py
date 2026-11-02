@@ -64,6 +64,31 @@ def session_bounds(day: date, venue: Venue) -> tuple[time, time] | None:
     return (venue.opens, early or venue.closes)
 
 
+def is_daylight_saving(day: date | None = None, venue: str = "XVIL") -> bool:
+    """True if the venue's own zone is on daylight saving on this day (at local noon).
+
+    The state comes from the IANA zone database through ``zoneinfo``, so no change
+    date is written in this package and later years need no upkeep.
+    """
+    market = resolve(venue)
+    day = day or date.today()
+    return bool(datetime(day.year, day.month, day.day, 12, tzinfo=_zone(market)).dst())
+
+
+def session_bounds_utc(day: date, venue: str = "XVIL") -> tuple[datetime, datetime] | None:
+    """Open and close of this day's session as UTC datetimes, or None if closed.
+
+    Venue hours stay fixed in local time, so these move by an hour when the venue's
+    zone changes. Same holiday and half-day handling as ``session_bounds``.
+    """
+    market = resolve(venue)
+    bounds = session_bounds(day, market)
+    if bounds is None:
+        return None
+    zone, utc = _zone(market), ZoneInfo("UTC")
+    return tuple(datetime.combine(day, clock, tzinfo=zone).astimezone(utc) for clock in bounds)
+
+
 def is_open(at: datetime | None = None, venue: str = "XVIL") -> bool:
     """True if the venue is in continuous trading at this instant.
 

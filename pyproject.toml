@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aion-lithuanian-market-calendar"
-version = "1.1.0"
+version = "1.2.0"
 description = "Lithuanian and European market calendar: timezone-correct trading sessions for 19 EU venues, computed Lithuanian holidays, and exchange holiday data that updates itself without a release."
 readme = "README.md"
 requires-python = ">=3.9"

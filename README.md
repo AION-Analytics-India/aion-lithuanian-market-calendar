@@ -183,6 +183,17 @@ Daylight saving is handled by `zoneinfo`. **No UTC offset is written down
 anywhere in this package** — an offset in source code is wrong twice a year, and
 CI fails the build if one appears.
 
+From 1.2.0, `is_daylight_saving(day, venue)` reports the zone's state and
+`session_bounds_utc(day, venue)` gives the session as UTC datetimes:
+
+```python
+from datetime import date
+from aion_lithuanian_market_calendar import is_daylight_saving, session_bounds_utc
+
+is_daylight_saving(date(2026, 3, 30), "XVIL")  # True
+session_bounds_utc(date(2026, 3, 30), "XVIL")  # 07:00 to 12:55 UTC; 08:00 to 13:55 on 27 March
+```
+
 ### Holidays that update themselves
 
 **You will never need to upgrade this package for a new holiday.**

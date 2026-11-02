@@ -4,7 +4,7 @@ Mapped 2026-10-25 from the tracked file list, README, CHANGELOG, `pyproject.toml
 
 ## 1. High-Level Purpose
 
-An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, version `1.1.0` in `pyproject.toml`, latest on PyPI `1.0.2`) for the Lithuanian and European market calendar: the sixteen Lithuanian statutory holidays computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase for 19 EU venues, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.9`. Part of AION Analytics' open-source infrastructure.
+An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, version `1.2.0` in `pyproject.toml`, latest on PyPI `1.1.0` until 1.2.0 is published) for the Lithuanian and European market calendar: the sixteen Lithuanian statutory holidays computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase for 19 EU venues, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.9`. Part of AION Analytics' open-source infrastructure.
 
 Git: independent public repository on GitHub (organisation `AION-Analytics-India`), branch `main`. Releases are published only by the tag-triggered workflow.
 
@@ -25,14 +25,14 @@ aion-lithuanian-market-calendar/
 │   ├── venues.py          continuous-session rules for 19 European venues
 │   ├── store.py           holiday data, its manifest, and the refresh that needs no release
 │   └── data/              holidays_2026.json, holidays_2027.json, manifest.json
-└── tests/                 test_calendar.py, test_sessions.py, test_store.py, test_microstructure.py (90 tests)
+└── tests/                 test_calendar.py, test_sessions.py, test_store.py, test_microstructure.py, test_daylight_saving.py
 ```
 
 ## 3. Core Components & Scripts
 
 | Path | Purpose | Dependencies (Internal/External) |
 | :--- | :--- | :--- |
-| `src/aion_lithuanian_market_calendar/__init__.py` | Public API: holidays and business days, `is_market_open`, sessions (`is_open`, `is_trading_day`, `next_trading_day`, `session_bounds`), venues, and from 1.1.0 `is_settlement_day`, `next_settlement_day`, `target_closing_days`, `get_market_phase`, `phase_name` | Internal: all modules below |
+| `src/aion_lithuanian_market_calendar/__init__.py` | Public API: holidays and business days, `is_market_open`, sessions (`is_open`, `is_trading_day`, `next_trading_day`, `session_bounds`), venues, and from 1.2.0 `is_daylight_saving`, `session_bounds_utc`, from 1.1.0 `is_settlement_day`, `next_settlement_day`, `target_closing_days`, `get_market_phase`, `phase_name` | Internal: all modules below |
 | `holidays.py` | Lithuanian statutory holidays computed from rules (article 123 of the Labour Code), English and Lithuanian names | Standard library |
 | `microstructure.py` | TARGET closing days (ECB rule from 2002) with English and Lithuanian names; settlement-day checks; `CONTINUOUS`/`CLOSED` phase | Internal: `holidays.easter_sunday`, `sessions`, `venues`. No data, no network |
 | `sessions.py` | Session check per venue, converting to the venue's zone; naive datetimes raise | Internal: `venues.py`, `store.py`. External: `tzdata` on Windows only |

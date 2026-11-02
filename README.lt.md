@@ -311,3 +311,9 @@ MIT licencija. Sukūrė **AION Analytics**.
 ---
 
 **Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://aionanalytics.in/careers).
+
+## Vasaros laikas (nuo 1.2.0)
+
+`is_daylight_saving(day, venue)` parodo, ar biržos laiko juostoje tą dieną galioja vasaros
+laikas. `session_bounds_utc(day, venue)` grąžina prekybos sesijos pradžią ir pabaigą UTC laiku.
+Biržos valandos vietos laiku nekinta, todėl UTC laikai pasikeitimo metu pasislenka viena valanda.
