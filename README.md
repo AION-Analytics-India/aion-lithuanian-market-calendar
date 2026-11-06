@@ -215,7 +215,7 @@ session_bounds_utc(date(2026, 3, 30), "XVIL")  # 07:00 to 12:55 UTC; 08:00 to 13
 
 ### Holidays that update themselves
 
-**You will never need to upgrade this package for a new holiday.**
+**Statutory holidays are computed by rule; exchange closures require maintained data.** You normally do not need a package release for an updated exchange closure, because supported installations can refresh verified calendar data. Code changes and new interfaces may still require a package upgrade.
 
 Lithuanian *public* holidays are computed — twelve fixed dates, two from the
 Easter computus, two from a first-Sunday rule — so they are correct for any year,
@@ -293,21 +293,11 @@ same answer every time.
 
 ### How it helps
 
-**It is right without being maintained.** Every Lithuanian statutory
-non-working day is derivable: twelve are fixed dates, two come from Easter, two
-are the first Sunday of a named month. So this package *computes* them instead
-of shipping a table that expires every December. Install it once and it is
-correct for 2027, 2040 and any year after, offline.
+**Statutory holidays are computed, not shipped as a yearly table.** Lithuanian legal non-working days follow calendar rules, including fixed dates, Easter and first-Sunday observances. Those calculations work offline for supported years without fetching a holiday API.
 
-That is the difference from a market whose holidays are announced annually and
-genuinely cannot be derived — our [Indian
-sibling](https://pypi.org/project/aion-indian-market-calendar/) ships a data
-file for exactly that reason. Lithuania does not need one, so it does not get
-one.
+**Exchange closures are separate from statutory holidays.** Market-specific closures and unscheduled changes cannot all be derived from Lithuanian law. Like our [Indian calendar](https://pypi.org/project/aion-indian-market-calendar/), this package uses maintained exchange data with a hash-verified refresh contract.
 
-**It cannot phone home.** No network call, so it works in an air-gapped
-settlement box or a CI runner with no egress, and it cannot fail because a
-third-party holiday API is down or has rate-limited you.
+**Offline-capable, not permanently network-free.** For ordinary calendar operations the package can use bundled or verified cached data. Supported online installations may check for updated manifests (at most daily, under the documented refresh contract). Set `AION_LT_CALENDAR_OFFLINE=1` in air-gapped environments to disable network refreshes. No AION account or API key is required.
 
 **It is bilingual, so it can reach the user interface.** Every holiday carries
 both `name_en` and `name_lt` in the wording of the Labour Code, so a Lithuanian
@@ -728,6 +718,6 @@ MIT licencija. Sukūrė **AION Analytics (India)**.
 
 ---
 
-**We're hiring a communication architect.** We don't read CVs — we read code. The challenge *is* the application: read this package, then explain it to someone who has never heard of us. [The full challenge](https://aionanalytics.in/careers).
+**We're hiring a Sales Architect (B2B + B2C, remote in India).** The application is a three-part challenge, not a conventional CV or cover letter. [Current role and application](https://aionanalytics.in/careers).
 
-**Ieškome komunikacijos architekto.** Neskaitome CV — skaitome kodą. Iššūkis ir yra paraiška. [Visas iššūkis](https://aionanalytics.in/careers).
+**Ieškome pardavimų architekto (B2B + B2C, nuotolinis darbas Indijoje).** Paraišką sudaro trijų dalių užduotis, o ne įprastas CV ar motyvacinis laiškas. [Pareigybės aprašymas ir paraiška](https://aionanalytics.in/careers).
