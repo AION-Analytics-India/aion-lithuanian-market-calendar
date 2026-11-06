@@ -16,6 +16,10 @@ atsinaujina patys.**
 
 **[English](#english)** · **[Lietuviškai](#lietuviškai)**
 
+**Official source and issues:** [AION-Analytics-India/aion-lithuanian-market-calendar](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar). This is an MIT-licensed Python library, not a hosted API; ordinary calendar functions need no AION login or API key. [Contribute a correction](CONTRIBUTING.md) · [Report a bug](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues).
+
+**Pradinis kodas ir klaidų pranešimai:** [AION-Analytics-India/aion-lithuanian-market-calendar](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar). Biblioteka platinama su MIT licencija; pagrindinėms kalendoriaus funkcijoms nereikia AION paskyros ar API rakto.
+
 ---
 
 ## Where this package lives · Kur rasti paketą
@@ -31,7 +35,22 @@ atsinaujina patys.**
 
 Install only from PyPI · Diekite tik iš PyPI: `pip install aion-lithuanian-market-calendar`
 
-## What changed in 1.1.0 · Kas naujo 1.1.0 versijoje
+## Latest release: 1.2.1 (2026-11-02) · Naujausia versija: 1.2.1
+
+Version 1.2.1 adds timezone/daylight-saving conversion helpers while preserving the calendar's statutory-holiday and TARGET-settlement rules. [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/1.2.1/) · [Changelog](CHANGELOG.md). It handles statutory Lithuanian public holidays by rules; exchange closure data is independently updated and should not be represented as perpetual static data.
+
+## First useful check · Pirmasis patikrinimas
+
+```python
+from aion_lithuanian_market_calendar import is_business_day, is_settlement_day
+
+print(is_business_day("2026-04-03"))    # True: Good Friday is a business day in Lithuania
+print(is_settlement_day("2026-04-03"))  # False: TARGET does not settle
+```
+
+No AION API credentials required. `pip install aion-lithuanian-market-calendar` installs the maintained release from PyPI.
+
+## Previous release: 1.1.0 · Ankstesnė versija: 1.1.0
 
 **Settlement days are not business days.** Euro settlement runs on TARGET (T2 and
 T2S), which closes on New Year's Day, Good Friday, Easter Monday, 1 May, 25 and
