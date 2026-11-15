@@ -1,0 +1,107 @@
+name: Verify calendar candidate without publication
+
+on:
+  push:
+    branches: [review/calendar-parity-20261115]
+  workflow_dispatch:
+    inputs:
+      run_managed_lifecycle:
+        type: boolean
+        default: false
+        description: 'Disposable lifecycle only, no production activation'
+  workflow_call:
+    inputs:
+      run_managed_lifecycle:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '3.13'}
+      - run: python -m pip install build twine
+      - name: Build exact source once
+        shell: bash
+        run: |
+          test -z "$(git status --porcelain)"
+          export SOURCE_DATE_EPOCH="$(git show -s --format=%ct HEAD)"
+          python -m build
+          python -m twine check dist/*
+          sha256sum dist/* | tee BUILD_SHA256.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: calendar-candidate
+          path: |
+            dist/
+            BUILD_SHA256.txt
+          retention-days: 14
+
+  artifacts:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2022]
+        python: ['3.10', '3.11', '3.12', '3.13', '3.14']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '${{ matrix.python }}'}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: calendar-candidate, path: acceptance-input}
+      - name: Wheel and full sdist context on native OS
+        shell: bash
+        run: |
+          python scripts/verify_artifacts.py acceptance-input/dist
+
+  managed-lifecycle:
+    needs: build
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-24.04, python: '3.13'}
+          - {os: macos-15, python: '3.13'}
+          - {os: windows-2022, python: '3.13'}
+          - {os: windows-11-arm, python: '3.13'}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with: {persist-credentials: false}
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with: {python-version: '${{ matrix.python }}'}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with: {name: calendar-candidate, path: acceptance-input}
+      - name: Prepare isolated published bootstrap and dependency closure
+        shell: bash
+        run: |
+          python -m pip install acceptance-input/dist/*.whl "cryptography>=45,<47" "packaging>=24,<27"
+          python -c "from pathlib import Path; import shutil; p=Path('lifecycle-work'); (p/'lifecycle-dist').mkdir(parents=True); shutil.copy(next(Path('acceptance-input/dist').glob('*.whl')),p/'lifecycle-dist'); (p/'artifacts').mkdir(); (p/'repair-wheelhouse').mkdir()"
+          python -m pip download --only-binary=:all: --no-deps aion-lithuanian-market-calendar==1.2.1 --dest lifecycle-work/artifacts
+          python -m pip download --only-binary=:all: "cryptography>=45,<47" "packaging>=24,<27" tzdata --dest lifecycle-work/repair-wheelhouse
+      - name: Actual OS scheduler, signed install, interruption, rollback and teardown
+        shell: bash
+        run: |
+          python -c "import os,subprocess,sys,shutil,uuid; from pathlib import Path; out=Path('lifecycle-evidence'); root=(Path(os.environ['LOCALAPPDATA'])/('aion-calendar-ci-'+uuid.uuid4().hex)) if os.name=='nt' else out; result=subprocess.run([sys.executable,'scripts/verify_managed_lifecycle.py','lifecycle-work',str(root)]); out.mkdir(exist_ok=True); [shutil.copyfile(p,out/p.name) for p in root.glob('*') if p.is_file() and p.name=='RESULTS.json' and p.parent!=out] if root!=out else None; sys.exit(result.returncode)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: lifecycle-${{ matrix.os }}-${{ matrix.python }}
+          path: |
+            lifecycle-evidence/RESULTS.json
+          retention-days: 14
+
+# No id-token, publishing, production signing credentials or production tests.
+# Lifecycle jobs enroll only disposable owned per-user jobs. They must refuse
+# unavailable user managers/interactive Windows sessions, never elevate or fall
+# back to SYSTEM/S4U. Windows 11 real reboot/logon remains an independent gate.

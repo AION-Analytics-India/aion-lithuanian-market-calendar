@@ -176,3 +176,5 @@ only what *cannot* be derived.
 ## 0.1.1
 
 Lithuanian public, bank and market holidays. Computed, bilingual EN/LT.
+
+Unreleased 1.3.0 review candidate: isolate opt-in managed software updates from calendar-data refresh. No production channel, enrollment or signing key. Lithuanian copy requires native review.

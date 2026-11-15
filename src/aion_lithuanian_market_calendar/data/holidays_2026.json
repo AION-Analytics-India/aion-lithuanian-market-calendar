@@ -7,101 +7,89 @@
     {
       "at": "2026-09-12T00:00:00+00:00",
       "change": "removed 2026-11-17: it was a pipeline test, not a real closure"
+    },
+    {
+      "at": "2026-09-12T00:00:00+00:00",
+      "change": "added 2026-11-17: end-to-end auto-update test"
+    },
+    {
+      "at": "2026-10-25T06:34:55+00:00",
+      "change": "removed 2026-11-17 from exchange_holidays and from XVIL, XRIS and XTAL: it was an end-to-end auto-update test entry published by mistake, not a real closure. Nasdaq Baltic trades that day."
+    },
+    {
+      "at": "2026-11-15T09:36:30.724499+00:00",
+      "change": "Review candidate: replace copied closure lists with market-specific records. Remove unsupported December 31 half-day. Statutory and TARGET rules unchanged.",
+      "effective_year": 2026,
+      "source": "https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1",
+      "source_html_sha256": "70f91dcc06132d863ee3b193b1e0c97f1157aeeab90488c9a6f7f291be2c073b",
+      "source_publication_time": null
     }
   ],
   "exchange_holidays": [
     "2026-01-01",
-    "2026-02-16",
-    "2026-03-11",
     "2026-04-03",
-    "2026-04-05",
     "2026-04-06",
     "2026-05-01",
-    "2026-05-03",
-    "2026-06-07",
+    "2026-05-14",
     "2026-06-24",
-    "2026-07-06",
-    "2026-08-15",
-    "2026-11-01",
-    "2026-11-02",
     "2026-12-24",
     "2026-12-25",
-    "2026-12-26"
+    "2026-12-31"
   ],
   "exchange_holidays_by_venue": {
     "XRIS": [
       "2026-01-01",
-      "2026-02-16",
-      "2026-03-11",
+      "2026-01-02",
       "2026-04-03",
-      "2026-04-05",
       "2026-04-06",
       "2026-05-01",
-      "2026-05-03",
-      "2026-06-07",
+      "2026-05-04",
+      "2026-05-14",
+      "2026-06-22",
+      "2026-06-23",
       "2026-06-24",
-      "2026-07-06",
-      "2026-08-15",
-      "2026-11-01",
-      "2026-11-02",
+      "2026-11-18",
       "2026-12-24",
       "2026-12-25",
-      "2026-12-26"
+      "2026-12-31"
     ],
     "XTAL": [
       "2026-01-01",
-      "2026-02-16",
-      "2026-03-11",
+      "2026-02-24",
       "2026-04-03",
-      "2026-04-05",
       "2026-04-06",
       "2026-05-01",
-      "2026-05-03",
-      "2026-06-07",
+      "2026-05-14",
+      "2026-06-23",
       "2026-06-24",
-      "2026-07-06",
-      "2026-08-15",
-      "2026-11-01",
-      "2026-11-02",
+      "2026-08-20",
       "2026-12-24",
       "2026-12-25",
-      "2026-12-26"
+      "2026-12-31"
     ],
     "XVIL": [
       "2026-01-01",
       "2026-02-16",
       "2026-03-11",
       "2026-04-03",
-      "2026-04-05",
       "2026-04-06",
       "2026-05-01",
-      "2026-05-03",
-      "2026-06-07",
+      "2026-05-14",
       "2026-06-24",
       "2026-07-06",
-      "2026-08-15",
-      "2026-11-01",
       "2026-11-02",
       "2026-12-24",
       "2026-12-25",
-      "2026-12-26"
+      "2026-12-31"
     ]
   },
-  "half_days": {
-    "2026-12-31": "12:30"
-  },
+  "half_days": {},
   "half_days_by_venue": {
-    "XRIS": {
-      "2026-12-31": "12:30"
-    },
-    "XTAL": {
-      "2026-12-31": "12:30"
-    },
-    "XVIL": {
-      "2026-12-31": "12:30"
-    }
+    "XRIS": {},
+    "XTAL": {},
+    "XVIL": {}
   },
-  "notes": "Good Friday closes Nasdaq Baltic but is NOT a Lithuanian public holiday -- the case that makes these two lists different. Christmas Eve IS a Lithuanian statutory holiday, so it is a full closure rather than a half-day. New Year's Eve is a working day with an early close. Confirm against Nasdaq Baltic before settling money on any of it.",
+  "notes": "2026 trading closures by market from Nasdaq Baltic. The legacy common list is the intersection of these three markets. This is not a European-wide closure list. December 31 is closed.",
   "public_holidays": [
     "2026-01-01",
     "2026-02-16",
@@ -121,6 +109,6 @@
     "2026-12-26"
   ],
   "timezone": "Europe/Vilnius",
-  "verified_on": "2026-09-12",
+  "verified_on": "2026-11-15",
   "year": 2026
 }
