@@ -1,3 +1,6 @@
 recursive-include tests *.py
 include LICENSE README.lt.md
 recursive-include scripts *.py
+
+include CHANGELOG.md CONTRIBUTING.md
+recursive-include docs *.md

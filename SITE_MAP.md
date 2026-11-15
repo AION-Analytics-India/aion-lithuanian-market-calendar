@@ -92,3 +92,5 @@ LT-UPDATE and LT-CI: isolated consent, distribution, signed-metadata, scheduler,
 Review branch: src/*/update_notice.py records signed offers for opt-in clients; update_lifecycle.py is the CLI boundary. scripts/verify_artifacts.py and .github/workflows/verify-review.yml test clean archives and disposable native user jobs. store.py adopts verified generations via one ACTIVE pointer. Nasdaq Baltic 2026 dated data comes from the shared data review, not from the statutory calendar.
 
 README.md and README.lt.md -> docs/UPDATES.md and authoritative source links. tests/test_review_calendar.py covers missing venue evidence and retention on rejected refresh. llms.txt indexes the product.
+
+MANIFEST.in bundles the operator guide in the sdist. verify_artifacts.py validates the build SHA-256 inventory before running either artifact. LT store reuses the bounded no-redirect transport; production public keys are not provisioned.

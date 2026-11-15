@@ -37,7 +37,7 @@ Good Friday illustrates why payroll, venue scheduling and payments need differen
 
 ## Venues and time
 
-The 19 venue definitions below implement scheduled **continuous trading** only. These hours are configuration, not a guarantee that every closure, interruption or auction is covered. For 2026 the candidate has an explicit source review for full-day closures in the three Baltic markets. Other venue holiday schedules are **not fully verified**. The 1.2.1 fallbacks can apply Baltic data to unrelated venues or report ordinary weekday hours for unknown years. Do not use those answers as confirmation that a market is open. The candidate adds `checked_session_bounds_utc(day, venue)` to refuse venue-years without evidence; it does not retroactively fix 1.2.1.
+The 19 venue definitions below implement scheduled **continuous trading** only. These hours are configuration, not a guarantee that every closure, interruption or auction is covered. For 2026 the candidate has an explicit source review of the published full-day closure list in the three Baltic markets. Other venue holiday schedules are **not fully verified**. The 1.2.1 fallbacks can apply Baltic data to unrelated venues or report ordinary weekday hours for unknown years. Do not use those answers as confirmation that a market is open. The candidate adds `checked_session_bounds_utc(day, venue)` to refuse venue-years without evidence; it does not retroactively fix 1.2.1.
 
 | MIC | Venue | IANA zone | Local session |
 | --- | --- | --- | --- |

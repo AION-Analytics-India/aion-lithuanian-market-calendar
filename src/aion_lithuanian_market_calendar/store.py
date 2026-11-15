@@ -95,7 +95,7 @@ def _default_cache_dir() -> Path:
         return preferred
     except OSError:
         import tempfile
-        fallback = Path(tempfile.gettempdir()) / f"aion_lt_calendar-{os.getuid()}"
+        fallback = Path(tempfile.mkdtemp(prefix="aion_lt_calendar-"))
         log.warning(
             "Cannot write to %s, so refreshed holiday data will be cached in %s "
             "and lost on reboot. Auto-update still works; it just re-fetches more "
@@ -338,11 +338,9 @@ def _offline() -> bool:
 
 def _fetch(url: str, timeout: int = NETWORK_TIMEOUT_SECONDS) -> bytes | None:
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "aion-lt-calendar"})
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            limit = 2097152
-            body=response.read(limit+1)
-            return body if len(body)<=limit else None
+        from .software_updates import fetch_bytes
+        return fetch_bytes(url,max_bytes=2097152,network_authorized=True,
+                           allow_test_http=urllib.parse.urlsplit(REMOTE_BASE).hostname=="127.0.0.1")
     except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
         log.debug("holiday data fetch failed for %s: %s", url, exc)
         return None

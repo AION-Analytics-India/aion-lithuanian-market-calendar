@@ -5,6 +5,8 @@ def run(argv,wd,env): subprocess.run(list(map(str,argv)),cwd=wd,env=env,check=Tr
 def main():
     dist=Path(sys.argv[1]).resolve()
     fs=[*dist.glob('*.whl'),*dist.glob('*.tar.gz')]
+    expected={Path(name).name:h for h,name in (line.split() for line in (dist.parent/'BUILD_SHA256.txt').read_text().splitlines())}
+    assert {p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in fs}==expected, 'Artifact identity differs from build job'
     assert len(fs)==2
     print('runtime',platform.platform(),platform.machine(),sys.version,flush=True)
     with tempfile.TemporaryDirectory() as name:
