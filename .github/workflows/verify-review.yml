@@ -73,19 +73,21 @@ jobs:
           - {os: ubuntu-24.04, python: '3.13'}
           - {os: macos-15, python: '3.13'}
           - {os: windows-2022, python: '3.13'}
-          - {os: windows-11-arm, python: '3.13'}
+          - {os: windows-11-arm, python: '3.11', arch: x64}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with: {persist-credentials: false}
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
-        with: {python-version: '${{ matrix.python }}'}
+        with:
+          python-version: '${{ matrix.python }}'
+          architecture: ${{ matrix.arch || (runner.arch == 'ARM64' && 'arm64' || 'x64') }}
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with: {name: calendar-candidate, path: acceptance-input}
       - name: Prepare isolated published bootstrap and dependency closure
         shell: bash
         run: |
-          python -m pip install acceptance-input/dist/*.whl "cryptography>=45,<47" "packaging>=24,<27"
+          python -m pip install acceptance-input/dist/*.whl "cryptography>=45,<47" "packaging>=24,<27" "pyOpenSSL>=25,<26"
           python -c "from pathlib import Path; import shutil; p=Path('lifecycle-work'); (p/'lifecycle-dist').mkdir(parents=True); shutil.copy(next(Path('acceptance-input/dist').glob('*.whl')),p/'lifecycle-dist'); (p/'artifacts').mkdir(); (p/'repair-wheelhouse').mkdir()"
           python -m pip download --only-binary=:all: --no-deps aion-lithuanian-market-calendar==1.2.1 --dest lifecycle-work/artifacts
           python -m pip download --only-binary=:all: "cryptography>=45,<47" "packaging>=24,<27" tzdata --dest lifecycle-work/repair-wheelhouse

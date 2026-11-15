@@ -84,6 +84,7 @@ __all__ = [
     "next_trading_day",
     "is_daylight_saving",
     "session_bounds",
+    "checked_session_bounds_utc",
     "session_bounds_utc",
     "to_venue_time",
     # European venues, rules only.
@@ -215,3 +216,13 @@ def holidays_between(start: date | datetime | str, end: date | datetime | str) -
         for h in holidays(year):
             if a <= h.date < b:
                 yield h
+
+
+def checked_session_bounds_utc(day: date, venue: str = 'XVIL'):
+    """Session only when the data generation declares an official venue/year review."""
+    from . import store
+    market=resolve(venue)
+    evidence=store.load().get(day.year,{}).get('venue_coverage',{})
+    if market.mic not in evidence or not evidence[market.mic].get('official_source'):
+        raise ValueError(f'No verified exchange calendar for {market.mic} in {day.year}')
+    return session_bounds_utc(day,market.mic)

@@ -109,6 +109,23 @@
     "2026-12-26"
   ],
   "timezone": "Europe/Vilnius",
+  "venue_coverage": {
+    "XRIS": {
+      "official_source": "https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1",
+      "reviewed": "2026-11-15",
+      "scope": "full-day closures"
+    },
+    "XTAL": {
+      "official_source": "https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1",
+      "reviewed": "2026-11-15",
+      "scope": "full-day closures"
+    },
+    "XVIL": {
+      "official_source": "https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1",
+      "reviewed": "2026-11-15",
+      "scope": "full-day closures"
+    }
+  },
   "verified_on": "2026-11-15",
   "year": 2026
 }

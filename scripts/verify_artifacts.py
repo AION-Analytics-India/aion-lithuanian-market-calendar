@@ -22,6 +22,6 @@ def main():
             py=d/('Scripts/python.exe' if os.name=='nt' else 'bin/python')
             env={**os.environ,'AION_LT_CALENDAR_OFFLINE':'1','AION_LT_CALENDAR_CACHE':str(d/'calendar-cache')};env.pop('PYTHONPATH',None)
             run([py,'-m','pip','install',artifact,'pytest'],wd,env)
-            run([py,'-I','-c','from pathlib import Path;import sys,aion_lithuanian_market_calendar as m;assert Path(m.__file__).resolve().is_relative_to(sys.prefix);assert m.__version__=="1.3.0"'],wd,env)
+            run([py,'-I','-c','from pathlib import Path;import sys,aion_lithuanian_market_calendar as m;assert Path(m.__file__).resolve().is_relative_to(Path(sys.prefix).resolve());assert m.__version__=="1.3.0"'],wd,env)
             run([py,'-I','-m','pytest','-q',wd/'tests'],wd,env)
 if __name__=='__main__': main()
