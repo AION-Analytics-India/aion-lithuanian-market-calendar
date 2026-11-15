@@ -218,11 +218,30 @@ def holidays_between(start: date | datetime | str, end: date | datetime | str) -
                 yield h
 
 
-def checked_session_bounds_utc(day: date, venue: str = 'XVIL'):
-    """Session only when the data generation declares an official venue/year review."""
-    from . import store
-    market=resolve(venue)
-    evidence=store.load().get(day.year,{}).get('venue_coverage',{})
-    if market.mic not in evidence or not evidence[market.mic].get('official_source'):
-        raise ValueError(f'No verified exchange calendar for {market.mic} in {day.year}')
-    return session_bounds_utc(day,market.mic)
+# Official Nasdaq Baltic 2026 closure review. Pin the reviewed combination of
+# both MIC maps in legacy-format generations, not the MIC or its year alone.
+# Source: https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1
+_REVIEWED_BALTIC_2026 = {
+    "XVIL": "46c6ba8c8d05a772cb000a82ccb8d8e81aebe38c5a82474cbe9f1ede156c14da",
+    "XRIS": "adc921f992b37e5097988a954435e286dba15f100f183cd3974525ba4a749b13",
+    "XTAL": "6294a1ef0b8cd6ca734ec3033d3f3b86e08ed4681e5ef607cd317007dde6987a"
+}
+
+
+def checked_session_bounds_utc(day: date, venue: str = "XVIL"):
+    """Return a session only for a reviewed venue/year and data generation."""
+    import hashlib
+    import json
+
+    mic = resolve(venue).mic
+    payload = store.load().get(day.year, {})
+    evidence = payload.get("venue_coverage", {}).get(mic, {})
+    if evidence.get("official_source"):
+        return session_bounds_utc(day, mic)
+    if day.year == 2026 and mic in _REVIEWED_BALTIC_2026:
+        closures = payload.get("exchange_holidays_by_venue", {}).get(mic)
+        half_days = payload.get("half_days_by_venue", {}).get(mic)
+        proof = json.dumps([closures, half_days], sort_keys=True, separators=(",", ":"))
+        if hashlib.sha256(proof.encode()).hexdigest() == _REVIEWED_BALTIC_2026[mic]:
+            return session_bounds_utc(day, mic)
+    raise ValueError(f"No verified exchange calendar for {mic} in {day.year}")

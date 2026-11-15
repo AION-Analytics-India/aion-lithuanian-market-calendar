@@ -94,3 +94,5 @@ Review branch: src/*/update_notice.py records signed offers for opt-in clients; 
 README.md and README.lt.md -> docs/UPDATES.md and authoritative source links. tests/test_review_calendar.py covers missing venue evidence and retention on rejected refresh. llms.txt indexes the product.
 
 MANIFEST.in bundles the operator guide in the sdist. verify_artifacts.py validates the build SHA-256 inventory before running either artifact. LT store reuses the bounded no-redirect transport; production public keys are not provisioned.
+
+LT-STORE/LT-VENUE: tests/test_baltic_containment.py pins the seven legacy answers at all 2026 venue dates and session boundaries. scripts/verify_baltic_compatibility.py compares two actual generations using the published wheel in a disposable cache. checked_session_bounds_utc also recognizes the reviewed 2026 pairs of explicit MIC maps by digest. The raw data endpoint, approval boundary and legacy global fallback do not change.

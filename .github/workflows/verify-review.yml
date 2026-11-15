@@ -2,7 +2,7 @@ name: Verify calendar candidate without publication
 
 on:
   push:
-    branches: [review/calendar-parity-20261115]
+    branches: [review/calendar-parity-20261115, review/baltic-mic-containment-20261115]
   workflow_dispatch:
     inputs:
       run_managed_lifecycle:

@@ -25,3 +25,26 @@ def test_damaged_new_generation_retains_previous(monkeypatch,tmp_path):
     assert 'verification failed' in store.refresh(force=True)
     assert old==(tmp_path/'ACTIVE').read_bytes()
     assert checked_session_bounds_utc(date(2026,11,18),'XRIS') is None
+
+
+@pytest.mark.parametrize("field", ["exchange_holidays_by_venue", "half_days_by_venue"])
+def test_unattested_changed_or_missing_mic_maps_are_refused(monkeypatch, field):
+    payload = json.loads((store.BUNDLED_DIR / "holidays_2026.json").read_bytes())
+    payload[field].pop("XRIS")
+    monkeypatch.setattr(store, "load", lambda: {2026: payload})
+    with pytest.raises(ValueError, match="No verified"):
+        checked_session_bounds_utc(date(2026, 11, 18), "XRIS")
+
+
+@pytest.mark.parametrize("force", [False, True])
+def test_older_manifest_cannot_replace_bundled_generation(monkeypatch, tmp_path, force):
+    manifest = json.loads((store.BUNDLED_DIR / "manifest.json").read_bytes())
+    manifest.update(dataset_version="2026.10.25", last_updated="2026-10-25T06:34:55+00:00")
+    def fetch(url):
+        assert url.endswith("/manifest.json"), "older generation should fetch no payload"
+        return json.dumps(manifest).encode()
+    monkeypatch.setenv("AION_LT_CALENDAR_OFFLINE", "0")
+    monkeypatch.setattr(store, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(store, "_fetch", fetch)
+    assert store.refresh(force=force) == "older generation refused"
+    assert not (tmp_path / "ACTIVE").exists()
