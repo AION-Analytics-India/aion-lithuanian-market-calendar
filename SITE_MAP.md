@@ -90,3 +90,5 @@ Mapping gaps: `venues.py` and `store.py` were not read in full; CI history was n
 LT-UPDATE and LT-CI: isolated consent, distribution, signed-metadata, scheduler, native validation and runtime boundaries. LT-STORE and LT-VENUE remain separate domains.
 
 Review branch: src/*/update_notice.py records signed offers for opt-in clients; update_lifecycle.py is the CLI boundary. scripts/verify_artifacts.py and .github/workflows/verify-review.yml test clean archives and disposable native user jobs. store.py adopts verified generations via one ACTIVE pointer. Nasdaq Baltic 2026 dated data comes from the shared data review, not from the statutory calendar.
+
+README.md and README.lt.md -> docs/UPDATES.md and authoritative source links. tests/test_review_calendar.py covers missing venue evidence and retention on rejected refresh. llms.txt indexes the product.

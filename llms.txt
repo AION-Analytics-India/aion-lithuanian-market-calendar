@@ -1,0 +1,9 @@
+# AION Lithuanian Market Calendar
+
+Public Python library. PyPI: 1.2.1. MIT.
+
+- [English guide](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.md)
+- [Lietuviškai](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.lt.md)
+- [Official Baltic closure dates](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1)
+
+19 continuous-session templates; not 19 verified, complete holiday schedules. TARGET euro settlement, Lithuanian business days and individual venue trading calendars differ. The 1.2.1 bundled Baltic data misstates December 31, 2026. Hash manifests are not digital signatures. No production unattended software updates.
