@@ -1,8 +1,9 @@
 # aion-lithuanian-market-calendar
 
-**Lithuanian and European market calendar. Timezone-correct trading sessions for
-19 EU venues, Lithuanian holidays computed from the rule, and exchange holiday
-data that updates itself without a release.**
+**Lithuanian and European market calendar. Local-time continuous-session templates
+for 19 European venues, statutory Lithuanian holidays computed from law, and
+maintained exchange-closure data that can refresh without a new wheel.**
+A session template is not a verified holiday calendar for every venue.
 
 **Lietuvos ir Europos rinkų kalendorius. Teisingos laiko juostos prekybos sesijos
 19 ES biržų, apskaičiuotos Lietuvos šventės ir biržų švenčių duomenys, kurie
@@ -37,7 +38,26 @@ Install only from PyPI · Diekite tik iš PyPI: `pip install aion-lithuanian-mar
 
 ## Latest release: 1.2.1 (2026-11-02) · Naujausia versija: 1.2.1
 
-Version 1.2.1 adds timezone/daylight-saving conversion helpers while preserving the calendar's statutory-holiday and TARGET-settlement rules. [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/1.2.1/) · [Changelog](CHANGELOG.md). It handles statutory Lithuanian public holidays by rules; exchange closure data is independently updated and should not be represented as perpetual static data.
+Version 1.2.1 adds timezone/daylight-saving conversion helpers while preserving the calendar's statutory-holiday and TARGET-settlement rules. [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/1.2.1/) · [Changelog](CHANGELOG.md). It handles statutory Lithuanian public holidays by rules; exchange closure data is independently updated and must not be represented as a perpetual verified calendar.
+
+**Release status (15 November 2026):** 1.2.1 remains the published PyPI version. Version 1.3.0 is a **review candidate, not published**; its [20-job CI run](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43701544630) passed on tested operating systems and Python versions. Candidate tests do not mean 1.3.0 is available for users. Production automatic software installation is **disabled** for both AION calendars.
+
+### Important: known 2026 Nasdaq Baltic calendar errors in 1.2.1
+
+The published 1.2.1 wheel includes an outdated Baltic closure table. Before a verified corrected dataset has been adopted, **do not use 1.2.1's bundled answers as proof that a Baltic venue is open** on these dates:
+
+| Date | Nasdaq Vilnius `XVIL` | Nasdaq Riga `XRIS` | Nasdaq Tallinn `XTAL` | Previously misleading bundled behaviour |
+| --- | --- | --- | --- | --- |
+| 2026-11-18 | No closure listed | **Closed** | No closure listed | Riga can be treated as an ordinary session |
+| 2026-12-31 | **Closed all day** | **Closed all day** | **Closed all day** | Incorrect early close at 12:30 |
+
+Source: [Nasdaq Baltic official trading-holiday calendar](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1). A venue not listed as closed is **not** proof of real-time availability; actual trading can be affected by notices, outages and instrument rules.
+
+A corrected **2026 review dataset** and the 1.3.0 candidate exist, but the corrected shared dataset has **not been confirmed published to the public data endpoint** as of this documentation update. Clean-install tests showed that compatible 1.2.1 clients can adopt a corrected dataset without a wheel upgrade. That isolated result does **not** mean all installed clients have received it.
+
+Check the exact dataset generation with `data_status()`, confirm the official venue notice, and refresh from a verified public channel when the correction is authorized. A package update fixes code; a separately published, reviewed calendar-data generation can fix compatible data records. Neither changes already-running applications by itself.
+
+**Lietuviškai (pataisų pranešimas):** Pagal [„Nasdaq Baltic“ oficialų prekybos kalendorių](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1) 2026 m. lapkričio 18 d. iš trijų Baltijos biržų nedirba tik Ryga (`XRIS`), o gruodžio 31 d. prekyba nevyksta Vilniuje (`XVIL`), Rygoje (`XRIS`) ir Taline (`XTAL`). Kartu su 1.2.1 pateikti duomenys šiais atvejais gali klaidinti. 1.3.0 versija dar neišleista. Nauja lietuviška techninė redakcija laukia gimtakalbio finansų ir teisės terminijos peržiūros.
 
 ## First useful check · Pirmasis patikrinimas
 
@@ -127,6 +147,194 @@ pip install --upgrade aion-lithuanian-market-calendar
 ```
 
 
+## System architecture · Sistemos architektūra
+
+### Two separate workflows: source publishing and client refreshing
+
+The library does not poll every exchange or autonomously approve a trading
+holiday. Publisher-side source discovery, human adjudication, and data publication
+are separate from the **installed library's at-most-daily refresh check**.
+
+```mermaid
+flowchart TD
+  SRC["Official exchange and settlement notices:
+  Nasdaq Baltic, other venues, ECB, Lithuanian law"] --> DISC["Publisher source discovery and archive
+  daily workflow under review"]
+  DISC --> REVIEW["Source and venue-specific human review
+  date, MIC, legal status, effective date"]
+  REVIEW --> DATA["Approved lt/holidays_YEAR.json
+  and SHA-256 manifest"]
+  DATA --> PUBLIC["Published shared-data endpoint"]
+  PUBLIC --> CHECK["Compatible installed client
+  first-use check; at most once daily"]
+  CHECK --> VALID{"All files and manifest valid?"}
+  VALID -->|Yes| CACHE["Adopt validated local cache"]
+  VALID -->|No| FALLBACK["Keep verified cached or bundled data"]
+  BUNDLE["Bundled fallback in published wheel"] --> FALLBACK
+  CACHE --> ENGINE["Statutory, settlement and venue session engines"]
+  FALLBACK --> ENGINE
+  ENGINE --> APP["Python schedulers, fintechs, payments,
+  payroll and market-data applications"]
+```
+
+The publisher-side discovery workflow was demonstrated on a review branch, but
+the [shared-data workflow](https://github.com/AION-Analytics-India/aion-market-calendar-data)
+had **not yet passed a production scheduled discovery-to-approval-to-publication
+trace**. Do not interpret its existence in a branch as a running production job.
+No source-page fingerprint alone authorizes a trading-calendar change.
+
+### Three independent calendar questions
+
+```mermaid
+flowchart LR
+  INPUT["Date or timezone-aware instant"] --> LAW["Lithuanian Labour Code Article 123
+  weekends + computed statutory holidays"]
+  INPUT --> VENUE["Venue MIC and IANA zone
+  verified closures + session template"]
+  INPUT --> TARGET["TARGET euro settlement closure rules"]
+  LAW --> BUSINESS["Business day?"]
+  VENUE --> TRADE["Continuous trading session?
+  Verify actual venue coverage"]
+  TARGET --> SETTLE["TARGET settlement day?
+  Not individual bank processing"]
+```
+
+**Lithuanian statutory holidays:** 16 holiday entries under Article 123,
+including Western Easter Sunday/Monday, the first Sunday of May (Mother's Day),
+the first Sunday of June (Father's Day), Christmas Eve and no substitute Monday.
+Užgavėnės (Shrove Tuesday) is a traditional observance, not a statutory
+non-working day.
+
+**Trading vs settlement:** On 3 April 2026 (Good Friday), Lithuania has a
+business day, but Nasdaq Baltic and TARGET are closed. On 16 February,
+Lithuania observes a statutory holiday while TARGET can settle. TARGET T2/T2S
+calendar rules are not an end-to-end SEPA or bank-specific settlement guarantee.
+Venue MIC `XVIL`, `XRIS` and `XTAL` have different holiday dates.
+
+**Timezones:** Always pass aware datetimes to `is_open`. Sessions are
+configured in each venue's IANA local zone; `Europe/Vilnius` normally opens at
+10:00 local, equivalent to 08:00 UTC in winter and 07:00 UTC in summer.
+`Europe/Dublin` requires particular DST care. The library models scheduled
+continuous trading, not auctions, pre-open, post-close, unscheduled halts or
+broker execution permissions.
+
+### Market sessions: 19 defined venues, not 19 verified holiday calendars
+
+The times below are **local continuous-session templates from the published
+`venues.py` definitions**, not proof of every listed venue's closure calendar
+or real-time open status. Check actual venue announcements and years of coverage.
+
+| MIC | Venue | Local IANA timezone | Ordinary continuous session |
+| --- | --- | --- | --- |
+| `XVIL` | Nasdaq Vilnius | Europe/Vilnius | 10:00-15:55 |
+| `XRIS` | Nasdaq Riga | Europe/Riga | 10:00-15:55 |
+| `XTAL` | Nasdaq Tallinn | Europe/Tallinn | 10:00-15:55 |
+| `XSTO` | Nasdaq Stockholm | Europe/Stockholm | 09:00-17:25 |
+| `XCSE` | Nasdaq Copenhagen | Europe/Copenhagen | 09:00-16:55 |
+| `XHEL` | Nasdaq Helsinki | Europe/Helsinki | 10:00-18:25 |
+| `XPAR` | Euronext Paris | Europe/Paris | 09:00-17:30 |
+| `XAMS` | Euronext Amsterdam | Europe/Amsterdam | 09:00-17:30 |
+| `XBRU` | Euronext Brussels | Europe/Brussels | 09:00-17:30 |
+| `XLIS` | Euronext Lisbon | Europe/Lisbon | 08:00-16:30 |
+| `XMIL` | Euronext Milan | Europe/Rome | 09:00-17:30 |
+| `XDUB` | Euronext Dublin | Europe/Dublin | 08:00-16:30 |
+| `XETR` | Xetra | Europe/Berlin | 09:00-17:30 |
+| `XMAD` | Madrid | Europe/Madrid | 09:00-17:30 |
+| `XWBO` | Vienna | Europe/Vienna | 09:00-17:30 |
+| `XWAR` | Warsaw | Europe/Warsaw | 09:00-17:00 |
+| `XPRA` | Prague | Europe/Prague | 09:00-16:20 |
+| `XBUD` | Budapest | Europe/Budapest | 09:00-17:00 |
+| `ASEX` | Athens | Europe/Athens | 10:15-17:20 |
+
+### Calendar data refresh is NOT a Python software upgrade
+
+```mermaid
+flowchart LR
+  NOTICE["Official closure approved and published"] --> DATAFLOW["Hash-verified lt/ dataset refresh"]
+  DATAFLOW --> EXISTING["Compatible 1.2.1 client can adopt corrected data"]
+  PYPI["New package on PyPI"] --> MANUAL["Existing pip environments need manual upgrade"]
+  SIGNED["Signed managed software channel: experimental"] -.-> OPTIN["Explicit opt-in, approved bootstrap, isolated managed runtime"]
+  OPTIN -.-> OS["launchd / systemd user / Windows Task Scheduler"]
+  OS -.-> PATCH["Verified compatible patch, smoke tests and rollback"]
+```
+
+Ordinary `pip install` registers **no auto-updater**. Version 1.2.1 contains
+neither the experimental controller nor user-visible upgrade notifications.
+The 1.3.0 review candidate includes opted-in notification-only and managed
+patch-update components; they passed disposable signed-channel tests but are
+**not published or production-activated**. No production root key, approved
+release channel or customer bootstrap is supplied. Existing applications do
+not change interpreter automatically and already-running processes are not
+restarted. PyPI does not notify every previous installer.
+
+### Operating-system and release verification
+
+| Platform | Published 1.2.1 library | Experimental 1.3.0 candidate evidence |
+| --- | --- | --- |
+| macOS | Python library supported; uses IANA timezone data | Native wheel/sdist and isolated user `launchd` updater tests passed |
+| Linux | Python library supported; uses system IANA timezone data | Native wheel/sdist and isolated user `systemd` tests passed |
+| Windows | Same pure-Python package; needs `tzdata` | Windows Server 2022 x64 and Windows 11 ARM64 running x64 Python passed isolated tests; Windows 10 x64 and native Windows 11 x64 desktop acceptance unverified |
+
+The 1.3.0 review CI passed **20/20 jobs**, with wheel/sdist checks across
+Python 3.10-3.14 and lifecycle tests 16/16 on macOS, 16/16 on Linux, 17/17
+on each tested Windows environment. These are **candidate test results**, not
+the published 1.2.1 product's automatic-update features.
+Genuine Windows reboot/logon acceptance, production signing and customer
+bootstrap remain unresolved.
+[Candidate CI evidence](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43701544630).
+
+### Benefits and use cases
+
+- **Fintech and payments:** distinguish Lithuanian working days and TARGET
+  euro settlement dates; support preliminary SEPA scheduling and financial
+  reporting without claiming individual bank cutoffs.
+- **Market infrastructure:** identify scheduled continuous windows for European
+  venues using MIC identifiers and proper daylight-saving conversion.
+- **Payroll and contracts:** compute the statutory Lithuanian non-working-day
+  rules without annually shipping a new holiday table.
+- **Historical data and research:** separate verified venue closures from
+  missing bars, non-trading days and unknown coverage.
+- **Offline deployments:** use bundled or validated cached data, with no API
+  key, identity telemetry or hosted service dependency.
+
+### Limitations and operational safeguards
+
+- Only three Baltic markets received complete source review of **2026
+  venue-specific full-day closures in the 1.3.0 candidate**. Other venue
+  holiday lists and years are not equivalent to verified coverage.
+- The public 1.2.1 bundled Baltic data has identified correctness defects;
+  public data repair and PyPI software publication are independent operations.
+- `data_status()` is required to understand bundled, cached or rule-only
+  data and dataset freshness; a calculated statutory holiday does not prove a
+  venue is trading.
+- This is not a live exchange-status API, trading-halt detector, broker
+  interface, official CSD settlement schedule, tax/legal compliance opinion
+  or guaranteed bank-processing calendar.
+- Source observation, payload hashes and release approval are different trust
+  steps. An integrity-valid file can still contain incorrect dates.
+- The daily source-discovery/publisher pipeline and production unattended
+  software installation must not be represented as operational before
+  independent production receipts exist.
+
+### References and developer discovery
+
+[Official Nasdaq Baltic trading holidays](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1)
+· [ECB TARGET calendar](https://www.ecb.europa.eu/ecb/contacts/working-hours/html/index.en.html)
+· [Lithuanian Labour Code Article 123](https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/10c6bfd07bd511e6a0f68fd135e6f40c/asr)
+· [Shared calendar datasets](https://github.com/AION-Analytics-India/aion-market-calendar-data)
+· [Review candidate](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/tree/review/calendar-parity-20261115)
+· [Report a wrong trading date](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues).
+
+Related queries: Lithuanian business-day Python library, Lithuania statutory
+holidays, Nasdaq Vilnius trading hours, Nasdaq Riga trading holidays, Nasdaq
+Tallinn session calendar, 2026 Baltic trading closures, TARGET T2 settlement
+calendar, SEPA payment scheduling, European stock market sessions, MIC ISO 10383,
+Europe/Vilnius DST, Europe/Dublin timezone, Lithuanian bank holidays, Lithuanian
+payroll working days, European exchange calendar Python, hash-verified market
+holiday data, offline Lithuanian calendar API.
+
+---
+
 ## English
 
 *Lietuviškai — [žemiau](#lietuviškai) / [README.lt.md](README.lt.md)*
@@ -147,7 +355,7 @@ holiday_on("2026-06-24")
 #         name_lt='Rasos ir Joninių diena')
 ```
 
-No API key. No configuration. No runtime dependencies (`tzdata` on Windows only).
+No API key. Python standard library for the core rules, with the `tzdata` runtime dependency on Windows. Online refresh is optional and can be disabled.
 
 ### Trading sessions — read this if you upgraded from 0.x
 
@@ -223,7 +431,7 @@ forever, offline.
 
 *Exchange* holidays are different. A venue closes when it says it closes, and a
 government can declare a day of mourning with a week's notice. Nothing derives
-them, so they live in JSON with a signed manifest, and that data refreshes itself:
+them, so they live in maintained JSON with a SHA-256 manifest (**not a digital signature**), and compatible clients can refresh that data:
 
 - On first use, at most once a day, the library compares its manifest against a
   published one.
@@ -231,7 +439,8 @@ them, so they live in JSON with a signed manifest, and that data refreshes itsel
   cached under `~/.cache/aion_lt_calendar/` and used from then on.
 - If anything at all goes wrong — offline, proxy, DNS, a host serving nonsense,
   a hash that does not match — it keeps the bundled data, logs once, and carries
-  on. It never raises and never blocks.
+  on for refresh failures. Validate `data_status()` and venue-year coverage
+  before using an answer in a schedule-critical system.
 
 ```python
 from aion_lithuanian_market_calendar import data_status, refresh_data
@@ -259,7 +468,7 @@ way to get this wrong:
 | --- | --- |
 | **Good Friday** | Nasdaq Baltic closes. **Not** a Lithuanian public holiday. |
 | **Christmas Eve** | A Lithuanian statutory holiday (Šv. Kūčios) — a full closure, not an early close. |
-| **New Year's Eve** | A working day with an early close at 12:30. |
+| **31 December 2026** | Nasdaq's 2026 calendar lists a **full trading holiday** for Vilnius, Riga and Tallinn; the early-close record in the bundled 1.2.1 dataset is incorrect. The statutory business-day status is a separate question. |
 
 ```python
 from datetime import date
@@ -267,7 +476,8 @@ from aion_lithuanian_market_calendar import store
 
 store.is_exchange_holiday(date(2026, 4, 3))       # True  — Good Friday
 store.is_public_holiday_listed(date(2026, 4, 3))  # False — not a public holiday
-store.half_day_close(date(2026, 12, 31))          # time(12, 30)
+# Do not rely on 1.2.1's bundled 2026-12-31 half-day record.
+# Nasdaq Baltic declares a full trading holiday for XVIL, XRIS and XTAL.
 ```
 
 ### What it is for
@@ -493,20 +703,18 @@ diena?"* ir kaskart gauti tą patį atsakymą.
 
 ### Kuo ji naudinga
 
-**Ji teisinga be jokios priežiūros.** Visos Lietuvos švenčių dienos yra
-apskaičiuojamos: dvylika yra fiksuotos datos, dvi priklauso nuo Velykų, dvi yra
-pirmasis mėnesio sekmadienis. Todėl biblioteka jas *apskaičiuoja*, o ne saugo
-sąrašą, kuris kasmet gruodį pasensta. Įdiekite vieną kartą ir ji veiks 2027,
-2040 ir bet kuriais vėlesniais metais, be interneto ryšio.
+**Lietuvos šventinės nedarbo dienos apskaičiuojamos pagal teisines taisykles.**
+Dvylika datų nustatytos, dvi priklauso nuo Velykų, o Motinos ir Tėvo dienos
+yra pirmieji atitinkamų mėnesių sekmadieniai. Šių taisyklių skaičiavimui
+nereikia kiekvienų metų biržos duomenų.
 
-Tuo ji skiriasi nuo rinkų, kurių šventės skelbiamos kasmet ir tikrai negali būti
-apskaičiuotos — mūsų [Indijos rinkos
-kalendorius](https://pypi.org/project/aion-indian-market-calendar/) būtent dėl
-to platinamas su duomenų failu. Lietuvai jo nereikia, todėl jo ir nėra.
-
-**Ji nesijungia į internetą.** Jokių tinklo užklausų, todėl ji veikia
-izoliuotame atsiskaitymų serveryje ar CI aplinkoje be išorinio ryšio ir negali
-sugesti dėl to, kad trečiosios šalies švenčių API neveikia ar apribojo užklausas.
+**Biržų nedarbo dienos yra atskiri, atnaujinami duomenys.** Jų negalima
+automatiškai nustatyti vien pagal Lietuvos šventes. Biblioteka naudoja kartu
+pateikiamus arba patikrintus vietinės talpyklos duomenis ir, jei leidžiama,
+tikrina atnaujinimus. `AION_LT_CALENDAR_OFFLINE=1` išjungia tinklo užklausas.
+Nereiškia, kad visų 19 prekybos vietų visų metų kalendoriai yra patikrinti.
+Tą patį atskyrimą taiko [Indijos rinkos
+kalendorius](https://pypi.org/project/aion-indian-market-calendar/).
 
 **Ji dvikalbė, todėl tinka rodyti naudotojui.** Kiekviena šventė turi ir
 `name_en`, ir `name_lt` pagal Darbo kodekso formuluotę, todėl lietuvis klientas
@@ -656,12 +864,14 @@ Darbo kodekse. Pastabas ir pataisymus mielai priimame — žr.
 
 ## Holiday data updates itself
 
-**New holidays are picked up automatically. You do not need to upgrade the
-package.**
+**Approved new exchange-data generations can be picked up by compatible installed
+packages without upgrading the Python wheel.** An official notice is not
+automatically adopted until reviewed and published; the existing daily client
+check is not proof of a complete daily upstream source-collector pipeline.
 
 Holiday and closure data is published separately from the code, in
 [`aion-market-calendar-data`](https://github.com/AION-Analytics-India/aion-market-calendar-data)
-under [`lt/`]( https://github.com/AION-Analytics-India/aion-market-calendar-data/tree/main/lt).
+under [`lt/`](https://github.com/AION-Analytics-India/aion-market-calendar-data/tree/main/lt).
 Every wheel bundles a copy as the fallback, and the library checks for a newer
 one at most once a day.
 
@@ -682,18 +892,20 @@ fetch and is better than silently never updating.
 
 ## Security
 
-Every data file is verified against a SHA-256 listed in a signed manifest.
+Every data file is verified against a SHA-256 listed in a **hash manifest, not a digitally signed manifest**. Hashes protect against mismatched downloaded files; they do not independently authenticate the publisher or establish whether exchange facts are correct.
 Downloads land in a staging directory first; the swap into place happens **only
 if every file verifies**, and it is atomic. One mismatch and nothing is adopted.
 
 This is not ceremony. A refresh without integrity checking once wrote a
 105-byte fragment over a 117 KB data file and wiped a production component. The
-guard added at the time checked a size floor and a few expected keys, which stops
-that one payload and no other. A hash stops all of them.
+guard added at the time checked a size floor and a few expected keys, which only
+stopped that particular malformed payload. SHA-256 checks detect payload mismatches
+against the manifest, not malicious changes to both the payload and manifest.
 
 If anything fails — offline, a proxy, DNS, a host serving nonsense, a hash that
 does not match — the library keeps the bundled data, logs once, and carries on.
-It never raises and never blocks.
+A failed refresh retains validated cached/bundled data when available; the caller
+must still check coverage and freshness before taking an operational decision.
 
 ## Privacy
 
