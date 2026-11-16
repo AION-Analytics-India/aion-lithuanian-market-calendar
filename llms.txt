@@ -19,7 +19,7 @@
 
 ## Accurate functionality and geographic scope
 
-- Lithuanian statutory holidays: 16 dates under the Labour Code, including fixed dates, Western Easter Sunday/Monday, first-Sunday Mother's/Father's Day, Christmas Eve; no Monday substitute for holidays on weekends. Užgavėnės is an observance, not a statutory day off.
+- Lithuanian statutory holidays: 16 holiday entries under the Labour Code, including fixed dates, Western Easter Sunday/Monday, first-Sunday Mother's/Father's Day, Christmas Eve; no Monday substitute for holidays on weekends. Užgavėnės is an observance, not a statutory day off.
 - Separate answers: Lithuanian business days; European venue-specific trading sessions; TARGET euro settlement. Good Friday 2026 is a Lithuanian business day but TARGET and Nasdaq Baltic are closed; 16 February is a Lithuanian holiday but TARGET settlement can occur.
 - 19 **European venue session templates**: XVIL, XRIS, XTAL, XSTO, XCSE, XHEL, XPAR, XAMS, XBRU, XLIS, XMIL, XDUB, XETR, XMAD, XWBO, XWAR, XPRA, XBUD, ASEX. These are not 19 fully verified holiday calendars.
 - Complete official **2026 full-day closure review** applies only to Nasdaq Vilnius (XVIL: 13), Riga (XRIS: 14) and Tallinn (XTAL: 12), 39 records total.

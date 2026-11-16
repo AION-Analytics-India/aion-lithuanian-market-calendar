@@ -4,7 +4,7 @@ Mapped 2026-10-25 from the tracked file list, README, CHANGELOG, `pyproject.toml
 
 ## 1. High-Level Purpose
 
-An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, version `1.2.1` in `pyproject.toml`, latest on PyPI `1.1.0` until 1.2.1 is published) for the Lithuanian and European market calendar: the sixteen Lithuanian statutory holidays computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase for 19 EU venues, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.9`. Part of AION Analytics' open-source infrastructure.
+An MIT-licensed Python package (PyPI: `aion-lithuanian-market-calendar`, published version `1.3.0`, independently read from PyPI on 16 November 2026) for the Lithuanian and European market calendar: sixteen Lithuanian statutory holiday entries computed from the Labour Code, TARGET settlement days, timezone-correct trading sessions and phase templates for 19 European venues; complete reviewed 2026 full-day closure scope is XVIL, XRIS and XTAL, and exchange holiday data that updates without a release. English and Lithuanian throughout. No runtime dependencies except `tzdata` on Windows. Python `>=3.10`. Part of AION Analytics' open-source infrastructure.
 
 Git: independent public repository on GitHub (organisation `AION-Analytics-India`), branch `main`. Releases are published only by the tag-triggered workflow.
 
@@ -98,3 +98,8 @@ MANIFEST.in bundles the operator guide in the sdist. verify_artifacts.py validat
 LT-STORE/LT-VENUE: tests/test_baltic_containment.py pins the seven legacy answers at all 2026 venue dates and session boundaries. scripts/verify_baltic_compatibility.py compares two actual generations using the published wheel in a disposable cache. checked_session_bounds_utc also recognizes the reviewed 2026 pairs of explicit MIC maps by digest. The raw data endpoint, approval boundary and legacy global fallback do not change.
 
 LT-PUBLISH: verify-review.yml builds once; scripts/verify_publication_gate.py compares archive/source README, code, data, license, hashes and successful native jobs. publish.yml preflights the OIDC identity and uploads only accepted bytes on the approved tag. LT-STORE: tests/test_generation_admission.py exercises numeric version and timestamp consistency across competing adopters, including Windows lock contention. No production software-update channel is configured.
+
+
+## 16 November 2026 - publication documentation closure
+
+CAL-PUBLIC-DOCS: [publication status](docs/PUBLICATION_STATUS_20261116.md) records provider URLs, verified release identities, documentation mirrors and immutable PyPI-description limitations. Calendar algorithms, datasets, API contracts and updater activation are unchanged. Historical candidate results above are not current publication status.
