@@ -1,5 +1,14 @@
 # aion-lithuanian-market-calendar
 
+**Naujausia paskelbta versija: 1.3.0 (2026-11-16).** [PyPI paketas](https://pypi.org/project/aion-lithuanian-market-calendar/1.3.0/) · [„GitHub“ laidos informacija](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/releases/tag/v1.3.0) · [Patikslintas rinkų kalendorius](https://github.com/AION-Analytics-India/aion-market-calendar-data/commit/91651c8c50852e7e82adb9986e6aa49129787cda).
+
+1.3.0 versijoje pateikti ištaisyti trijų Baltijos biržų 2026 m. duomenys. Lietuvos švenčių dienų skaičiavimo ir TARGET atsiskaitymo taisyklės nepasikeitė. Aprašytos 19 **Europos** prekybos vietų nepertraukiamos prekybos sesijos, tačiau išsamiai pagal oficialius 2026 m. uždarymo įrašus patikrintos trys Baltijos biržos (XVIL, XRIS, XTAL), o ne visų pasaulio biržų kalendoriai.
+
+Duomenų atnaujinimai ir „Python“ programinės įrangos versijų atnaujinimai yra skirtingi procesai. Automatinis naujos programinės įrangos versijos diegimas naudotojams šiuo metu **neįjungtas**. Paketo „pip“ diegimas neaktyvuoja foninių užduočių. Dėl klaidų: **support@aionanalytics.in**.
+
+*Pastaba: šio naujo techninio teksto lietuviški finansų ir teisės terminai dar laukia gimtakalbio peržiūros.*
+
+
 **Lietuviškai (pataisų pranešimas):** Pagal [„Nasdaq Baltic“ oficialų prekybos kalendorių](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1) 2026 m. lapkričio 18 d. iš trijų Baltijos biržų nedirba tik Ryga (`XRIS`), o gruodžio 31 d. prekyba nevyksta Vilniuje (`XVIL`), Rygoje (`XRIS`) ir Taline (`XTAL`). Kartu su 1.2.1 pateikti duomenys šiais atvejais gali klaidinti. Nauja lietuviška techninė redakcija laukia gimtakalbio finansų ir teisės terminijos peržiūros.
 
 [2026.11.15.1](https://github.com/AION-Analytics-India/aion-market-calendar-data/commit/91651c8c50852e7e82adb9986e6aa49129787cda) | [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/#history) | [README.md](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar#check-for-software-updates)
