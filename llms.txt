@@ -1,11 +1,53 @@
 # AION Lithuanian Market Calendar
 
-Public Python library. Distribution status: https://pypi.org/project/aion-lithuanian-market-calendar/#history. MIT.
+> MIT-licensed Python package for Lithuanian statutory business days, TARGET euro settlement dates and timezone-correct continuous-session templates for 19 specified **European** trading venues. Accessible to developers worldwide, but **not a worldwide exchange-coverage product**. No hosted API or AION API key is required.
 
-- [English guide](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.md)
-- [Lietuviškai](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.lt.md)
-- [Official Baltic closure dates](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1)
+## Canonical versioned resources
 
-19 continuous-session templates; not 19 verified, complete holiday schedules. TARGET euro settlement, Lithuanian business days and individual venue trading calendars differ. The 1.2.1 bundled Baltic data misstates December 31, 2026. Hash manifests are not digital signatures. No production unattended software updates.
+- [Current GitHub README (authoritative living documentation)](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.md)
+- [Lithuanian-language documentation, terminology-review caveat](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/README.lt.md)
+- [Published 1.3.0 PyPI package](https://pypi.org/project/aion-lithuanian-market-calendar/1.3.0/) — released 16 November 2026
+- [GitHub v1.3.0 release and correction advisory](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/releases/tag/v1.3.0)
+- [Final 20-job CI](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43779903364)
+- [Shared source-reviewed dataset](https://github.com/AION-Analytics-India/aion-market-calendar-data)
+- [Public Baltic correction generation 2026.11.15.1](https://github.com/AION-Analytics-India/aion-market-calendar-data/commit/91651c8c50852e7e82adb9986e6aa49129787cda)
+- [Official Nasdaq Baltic holidays](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1)
+- [Lithuanian Labour Code Article 123](https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/10c6bfd07bd511e6a0f68fd135e6f40c/asr)
+- [ECB TARGET operating calendar](https://www.ecb.europa.eu/ecb/contacts/working-hours/html/index.en.html)
+- [AION Lithuanian Calendar product page](https://aionanalytics.in/open-source/lithuanian-market-calendar) — verify website release version separately
+- [Issues and source-backed corrections](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues)
 
-Public Baltic dataset 2026.11.15.1 corrects 39 venue/date records. Version 1.3.0 bundles it and refuses older or conflicting generations. Old 1.2.1 force-refresh can accept older data. Manual software upgrade, separate opt-in experiments; no automatic pip notifications.
+## Accurate functionality and geographic scope
+
+- Lithuanian statutory holidays: 16 dates under the Labour Code, including fixed dates, Western Easter Sunday/Monday, first-Sunday Mother's/Father's Day, Christmas Eve; no Monday substitute for holidays on weekends. Užgavėnės is an observance, not a statutory day off.
+- Separate answers: Lithuanian business days; European venue-specific trading sessions; TARGET euro settlement. Good Friday 2026 is a Lithuanian business day but TARGET and Nasdaq Baltic are closed; 16 February is a Lithuanian holiday but TARGET settlement can occur.
+- 19 **European venue session templates**: XVIL, XRIS, XTAL, XSTO, XCSE, XHEL, XPAR, XAMS, XBRU, XLIS, XMIL, XDUB, XETR, XMAD, XWBO, XWAR, XPRA, XBUD, ASEX. These are not 19 fully verified holiday calendars.
+- Complete official **2026 full-day closure review** applies only to Nasdaq Vilnius (XVIL: 13), Riga (XRIS: 14) and Tallinn (XTAL: 12), 39 records total.
+- Riga closed 18 November 2026; all three Baltic venues closed 31 December 2026. Earlier 1.2.1 bundled data misstated these days. Version 1.3.0 bundles the corrected 2026 data.
+- Use timezone-aware inputs and venue-specific IANA zones (Europe/Vilnius, Europe/Riga, Europe/Tallinn, Europe/Dublin, etc.). Includes DST-aware UTC session conversion and `checked_session_bounds_utc` to refuse unverified venue/year combinations. No auction, pre-open, post-trading, live-halt or arbitrary instrument support.
+- Market data can refresh from independently published, hash-verified JSON manifests with bundled/cache fallback. Hash verification is **not digital signature verification**. Publisher ingestion/approval is distinct from an installed client's first-use, at-most-daily data refresh; do not claim a complete automated source-to-approval pipeline without receipts.
+- 1.3.0 rejects older/conflicting dataset generations, including forced refresh. Older 1.2.1 code has a forced-downgrade limitation; installed 1.2.1 can still adopt the corrected public data generation when online.
+
+## Software release and platform limitations
+
+Install/upgrade in the application's actual interpreter:
+
+```sh
+python -m pip install --upgrade aion-lithuanian-market-calendar
+python -c "from importlib.metadata import version; print(version('aion-lithuanian-market-calendar'))"
+```
+
+- Universal Python wheel; tested across Python 3.10–3.14 on Windows, macOS and Linux. Windows needs `tzdata`; the other platforms normally use their system IANA zone database.
+- Optional signed managed software-updater components passed isolated lifecycle checks with disposable signing keys. **Production automatic software installation is disabled** pending production trust/channel/bootstrap and remaining desktop acceptance, including Windows 10, native Windows 11 x64 and real reboot/logon.
+- Normal pip does not enroll a background updater. The managed runtime only updates compatible opted-in apps explicitly launched through it and does not mutate unrelated pip environments.
+- PyPI/pip do **not** push package-specific notices to every historical installer. [PyPI release RSS](https://pypi.org/rss/project/aion-lithuanian-market-calendar/releases.xml) and GitHub Releases subscriptions are available for followers.
+
+## Benefits, limitations and support
+
+Use cases: pan-European trading-session scheduling within the specified venues, timezone normalization for international quant/market-data consumers, Baltic closure checks where verified, Lithuanian payroll and contractual business-day calculations, European payment/settlement planning using TARGET calendar rules, and offline research/backtesting.
+
+Limitations: not worldwide venue coverage, no live market status, no bank-specific payment/cutoff guarantee, no complete holiday certification for the other 16 venues, no production software auto-installation.
+
+For wrong dates, use [GitHub Issues](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues) or **support@aionanalytics.in**. Include MIC, timestamp/timezone, installed package version, dataset version, source circular and minimal reproducer; omit private accounts and credentials.
+
+Search/discovery terms: Lithuanian business day Python, Nasdaq Vilnius market calendar, Nasdaq Riga 2026 holidays, Nasdaq Tallinn calendar, European exchange trading hours, 19 European MIC markets, TARGET euro settlement calendar, SEPA date scheduling, Lithuanian statutory holiday calculator, timezone-aware market sessions, Europe/Vilnius DST, European financial market calendar Python.
