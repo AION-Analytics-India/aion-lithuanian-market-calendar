@@ -36,8 +36,8 @@ It is maintained by AION Analytics. English and Lithuanian are both first-class.
   edit a `manifest.json` by hand, and never put a test date into published data.
 - **No network unless a refresh is asked for, and no identifier ever.**
 - **Information, not advice.** The package reports when venues trade and settle, nothing more.
-- **Releases** go only through the tag-triggered workflow in `.github/workflows/publish.yml`.
-  Never upload from a laptop, never force-push, never rewrite published history.
+- **Releases** go only through the approved-tag workflow in `.github/workflows/publish.yml`.
+  The publisher downloads the tested artifact from its accepted CI run; dispatch publication only on the exact v1.3.0 tag after its preflight. Never upload from a laptop, never force-push, never rewrite published history.
   Dated note, 25 October 2026: the founder granted a one-time exception to this rule for release
   1.1.0, which was uploaded to PyPI from a maintainer's machine with twine, because the publish
   workflow has never run in this repository. The rule stands for later releases.

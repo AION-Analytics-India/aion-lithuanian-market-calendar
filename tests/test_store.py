@@ -138,6 +138,7 @@ def test_a_newer_remote_with_bad_hashes_is_refused(monkeypatch, tmp_path):
     against the hashes every time or it is ignored."""
     monkeypatch.delenv("AION_LT_CALENDAR_OFFLINE", raising=False)
     manifest = json.loads((store.BUNDLED_DIR / "manifest.json").read_text(encoding="utf-8"))
+    manifest["dataset_version"] = "2099.01.01"
     manifest["last_updated"] = "2099-01-01T00:00:00+00:00"
 
     def fake_fetch(url, timeout=5):
@@ -173,6 +174,7 @@ def test_a_newer_remote_that_verifies_is_adopted(monkeypatch, tmp_path):
         p.name: hashlib.sha256(p.read_bytes()).hexdigest()
         for p in published.glob("*.json") if p.name != "manifest.json"
     }
+    manifest["dataset_version"] = "2099.01.01"
     manifest["last_updated"] = "2099-01-01T00:00:00+00:00"
     (published / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
 
@@ -220,6 +222,7 @@ def test_a_stale_manifest_beside_a_fresh_payload_is_refused(monkeypatch, tmp_pat
     """
     monkeypatch.delenv("AION_LT_CALENDAR_OFFLINE", raising=False)
     stale = json.loads((store.BUNDLED_DIR / "manifest.json").read_text(encoding="utf-8"))
+    stale["dataset_version"] = "2099.01.01"
     stale["last_updated"] = "2099-01-01T00:00:00+00:00"      # newer, so it is tried
     stale["files"] = {k: "0" * 64 for k in stale["files"]}   # but hashes from nowhere
 

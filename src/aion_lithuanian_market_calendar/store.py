@@ -42,6 +42,11 @@ not a trusted input; it is a convenience that must prove itself each time.
 from __future__ import annotations
 
 import hashlib
+import re
+import errno
+import tempfile
+import shutil
+from contextlib import contextmanager
 import json
 import logging
 import os
@@ -90,7 +95,7 @@ def _default_cache_dir() -> Path:
         return preferred
     except OSError:
         import tempfile
-        fallback = Path(tempfile.gettempdir()) / f"aion_lt_calendar-{os.getuid()}"
+        fallback = Path(tempfile.mkdtemp(prefix="aion_lt_calendar-"))
         log.warning(
             "Cannot write to %s, so refreshed holiday data will be cached in %s "
             "and lost on reboot. Auto-update still works; it just re-fetches more "
@@ -135,6 +140,178 @@ def _sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+_ACTIVE_POINTER = "ACTIVE"
+_DATASETS_DIR = "generations"
+def _read_manifest(directory):
+    return json.loads((directory/'manifest.json').read_text('utf-8'))
+
+def _version_key(doc):
+    stamp=datetime.fromisoformat(doc['last_updated'].replace('Z','+00:00'))
+    if stamp.utcoffset() is None: raise ValueError('Source generation requires an aware timestamp')
+    return stamp.astimezone(timezone.utc)
+
+def _dataset_order(doc):
+    """Official versions are dotted numeric generations; compare numbers, not text."""
+    value = doc.get("dataset_version")
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{1,8}(?:[.][0-9]{1,8}){2,3}", value):
+        raise ValueError("invalid dataset generation")
+    parts = tuple(map(int, value.split(".")))
+    return parts if len(parts) == 4 else parts + (0,)
+
+
+def _admission(remote, local):
+    if remote == local:
+        return "already current"
+    if _dataset_order(remote) == _dataset_order(local):
+        return "conflicting generation refused"
+    if _dataset_order(remote) < _dataset_order(local) or _version_key(remote) < _version_key(local):
+        return "older generation refused"
+    if _version_key(remote) == _version_key(local):
+        return "conflicting generation refused"
+    return None
+
+
+def _shape(doc):
+    if not isinstance(doc,dict) or doc.get('schema_version')!=1: return False
+    files=doc.get('files')
+    if not isinstance(files,dict) or not 1 <= len(files) <= 64: return False
+    if not all(re.fullmatch(r'holidays_[0-9]{4}\.json',n) and isinstance(h,str) and re.fullmatch('[a-f0-9]{64}',h) for n,h in files.items()): return False
+    try: return sorted(doc['years'])==sorted(int(n[9:13]) for n in files) and bool(_version_key(doc)) and bool(_dataset_order(doc))
+    except (ValueError,TypeError,KeyError,AttributeError): return False
+
+def _active_pointer_dir() -> Path | None:
+    try:
+        name = (CACHE_DIR / _ACTIVE_POINTER).read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not name or "/" in name or "\\" in name or name.startswith("."):
+        return None
+    return CACHE_DIR / _DATASETS_DIR / name
+
+
+def _candidates() -> list[tuple[str, Path]]:
+    """Every place verified data may live, in tie-break order."""
+    found: list[tuple[str, Path]] = []
+    pointed = _active_pointer_dir()
+    if pointed is not None:
+        found.append(("cache", pointed))
+    found.append(("cache", CACHE_DIR))          # flat layout, also written by older versions
+    found.append(("bundled", BUNDLED_DIR))
+    return found
+
+
+def _verified_candidates() -> list[tuple[str, Path, dict[str, Any]]]:
+    """Every verified dataset, newest first (ties keep the tie-break order of _candidates)."""
+    found: list[tuple[str, Path, dict[str, Any]]] = []
+    for label, directory in _candidates():
+        if not (directory / "manifest.json").exists():
+            continue
+        ok, reason = _verify(directory)
+        if not ok:
+            _warn_once(f"verify-{label}-{directory.name}",
+                       "Holiday data in the %s directory failed verification (%s); "
+                       "ignoring it.", label, reason)
+            continue
+        found.append((label, directory, _read_manifest(directory)))
+    found.sort(key=lambda item: (_dataset_order(item[2]), _version_key(item[2])), reverse=True)   # stable sort
+    return found
+
+
+def _select() -> tuple[str, Path, dict[str, Any]] | None:
+    """The newest verified dataset. A cache never beats a newer bundled copy."""
+    found = _verified_candidates()
+    return found[0] if found else None
+
+
+def _signature() -> tuple:
+    """Cheap fingerprint of what is on disk: stat calls only, no hashing."""
+    parts: list[Any] = []
+    for name in (_ACTIVE_POINTER, "manifest.json"):
+        try:
+            st = (CACHE_DIR / name).stat()
+            parts.append((name, st.st_mtime_ns, st.st_size))
+        except OSError:
+            parts.append((name, None))
+    parts.append(str(CACHE_DIR))
+    return tuple(parts)
+
+
+# --------------------------------------------------------------------------
+# Refresh
+# --------------------------------------------------------------------------
+def _atomic_write_bytes(target: Path, body: bytes) -> None:
+    """Write a temp file unique to this call (process *and* thread), then rename over the target."""
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(body)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_name, target)
+    except BaseException:
+        try:
+            os.unlink(tmp_name)
+        except OSError:
+            pass
+        raise
+
+
+def _lock_contention(error: OSError, *, windows: bool | None = None) -> bool:
+    """Only retry bounded lock contention; never grant access or steal a lock.
+
+    Windows CRT _wopen reports sharing denial as errno EACCES without a
+    winerror attribute. The same errno on POSIX remains an immediate refusal.
+    A persistent Windows permission denial still expires at the same deadline.
+    """
+    if isinstance(error, FileExistsError):
+        return True
+    native = getattr(error, 'winerror', None)
+    if native in (5, 32, 33):
+        return True
+    if windows is None:
+        windows = os.name == 'nt'
+    return windows and native is None and error.errno == errno.EACCES
+
+
+@contextmanager
+def _adoption_lock():
+    """Serialize the version check and pointer switch across processes.
+
+    A crashed writer's lock is not silently stolen. Refresh fails closed until
+    its owner explicitly verifies and removes the abandoned lock.
+    """
+    lock = CACHE_DIR / ".adoption.lock"
+    deadline = _time.monotonic() + 5
+    while True:
+        try:
+            fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            break
+        except OSError as exc:
+            # NTFS can report a delete-pending/sharing state as access denied
+            # instead of EEXIST. Retry only known native contention errors;
+            # never steal the marker or weaken directory permissions.
+            if not _lock_contention(exc):
+                raise
+            if _time.monotonic() >= deadline:
+                raise TimeoutError("another data adopter owns the cache lock")
+            _time.sleep(0.01)
+    try:
+        os.write(fd, str(os.getpid()).encode())
+        yield
+    finally:
+        os.close(fd)
+        deadline = _time.monotonic() + 5
+        while True:
+            try:
+                lock.unlink()
+                break
+            except OSError as exc:
+                if not _lock_contention(exc) or _time.monotonic() >= deadline:
+                    raise
+                _time.sleep(0.01)
+
+
+
 def _verify(directory: Path) -> tuple[bool, str]:
     """Does this directory hold a manifest whose hashes match its files?"""
     manifest_path = directory / "manifest.json"
@@ -144,15 +321,17 @@ def _verify(directory: Path) -> tuple[bool, str]:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         return False, f"manifest.json is unreadable ({exc})"
+    if not isinstance(manifest,dict): return False, "invalid manifest"
     if manifest.get("schema_version") != SCHEMA_VERSION:
         return False, (f"manifest schema {manifest.get('schema_version')!r} is not "
                        f"the {SCHEMA_VERSION} this library understands")
+    if not _shape(manifest): return False, "invalid manifest file list or timestamps"
     files = manifest.get("files") or {}
     if not files:
         return False, "manifest lists no data files"
     for name, expected in files.items():
         candidate = directory / name
-        if not candidate.exists():
+        if candidate.is_symlink() or not candidate.is_file():
             return False, f"{name} is listed in the manifest but missing"
         actual = _sha256(candidate)
         if actual != expected:
@@ -166,6 +345,7 @@ def _read_dataset(directory: Path) -> dict[int, dict[str, Any]]:
     for name in manifest.get("files", {}):
         payload = json.loads((directory / name).read_text(encoding="utf-8"))
         year = int(payload["year"])
+        if name != f"holidays_{year}.json" or not isinstance(payload.get("exchange_holidays"),list): raise ValueError("Inconsistent year or missing closure list")
         years[year] = payload
     return years
 
@@ -179,9 +359,9 @@ def _offline() -> bool:
 
 def _fetch(url: str, timeout: int = NETWORK_TIMEOUT_SECONDS) -> bytes | None:
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "aion-lt-calendar"})
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            return response.read()
+        from .software_updates import fetch_bytes
+        return fetch_bytes(url,max_bytes=2097152,network_authorized=True,
+                           allow_test_http=urllib.parse.urlsplit(REMOTE_BASE).hostname=="127.0.0.1")
     except (urllib.error.URLError, urllib.error.HTTPError, OSError, ValueError) as exc:
         log.debug("holiday data fetch failed for %s: %s", url, exc)
         return None
@@ -231,27 +411,24 @@ def refresh(force: bool = False) -> str:
         return "remote unreachable"
     try:
         remote = json.loads(raw)
-    except json.JSONDecodeError:
+    except (ValueError,UnicodeError):
         _warn_once("badjson", "Remote holiday manifest is not valid JSON; using bundled data.")
         return "remote manifest unparseable"
-    if remote.get("schema_version") != SCHEMA_VERSION:
+    if not isinstance(remote,dict) or remote.get("schema_version") != SCHEMA_VERSION:
         return "remote uses a different schema"
 
-    local_dir = CACHE_DIR if (CACHE_DIR / "manifest.json").exists() else BUNDLED_DIR
+    if not _shape(remote): return "invalid manifest contract"
+    selected=_select()
+    if selected:
+        decision = _admission(remote, selected[2])
+        if decision:
+            if decision == "already current":
+                _mark_checked()
+            return decision
+    staging=None
     try:
-        local = json.loads((local_dir / "manifest.json").read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        local = {}
-    if not force and str(remote.get("last_updated", "")) <= str(local.get("last_updated", "")):
-        _mark_checked()
-        return "already current"
-
-    # Download into a staging directory and only swap once every hash verifies.
-    # A half-written cache is indistinguishable from a tampered one, and both
-    # should be refused rather than half-trusted.
-    staging = CACHE_DIR / ".staging"
-    try:
-        staging.mkdir(parents=True, exist_ok=True)
+        CACHE_DIR.mkdir(parents=True,exist_ok=True)
+        staging=Path(tempfile.mkdtemp(prefix=".stage-",dir=CACHE_DIR))
         # Fetch each payload keyed to the manifest we just read.
         #
         # GitHub raw caches per path for a few minutes and the paths expire
@@ -279,9 +456,21 @@ def refresh(force: bool = False) -> str:
             _warn_once("badhash", "Downloaded holiday data failed verification (%s); "
                                   "keeping existing data.", reason)
             return f"verification failed: {reason}"
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        for item in staging.iterdir():
-            item.replace(CACHE_DIR / item.name)
+        _read_dataset(staging)
+        generation=hashlib.sha256(raw).hexdigest()
+        with _adoption_lock():
+            selected=_select()
+            if selected:
+                decision = _admission(remote, selected[2])
+                if decision:
+                    if decision == "already current":
+                        _mark_checked()
+                    return decision
+            dest=CACHE_DIR/_DATASETS_DIR/generation
+            dest.parent.mkdir(exist_ok=True)
+            if not dest.exists(): staging.rename(dest)
+            if not _verify(dest)[0]: return "verification failed: generation"
+            _atomic_write_bytes(CACHE_DIR/_ACTIVE_POINTER,generation.encode())
         _mark_checked()
         _state["loaded"] = False          # force a reload on next read
         log.info("Holiday data updated to %s", remote.get("last_updated"))
@@ -295,6 +484,10 @@ def refresh(force: bool = False) -> str:
                    "with the bundled data. Set AION_LT_CALENDAR_CACHE to a "
                    "writable path to enable updates.", CACHE_DIR, exc)
         return f"could not write cache: {exc}"
+    except (ValueError,KeyError,TypeError):
+        return "invalid payload"
+    finally:
+        if staging and staging.is_dir(): shutil.rmtree(staging,ignore_errors=True)
 
 
 # --------------------------------------------------------------------------
@@ -307,13 +500,13 @@ def load(auto_refresh: bool = True) -> dict[int, dict[str, Any]]:
     caller then still has weekends and computed public holidays, which is the
     part that cannot go stale.
     """
-    if _state["loaded"]:
+    if _state["loaded"] and _state.get("signature")==_signature():
         return _state["data"]
 
     if auto_refresh:
         refresh()
 
-    for directory, label in ((CACHE_DIR, "cache"), (BUNDLED_DIR, "bundled")):
+    for label,directory,manifest in _verified_candidates():
         if not (directory / "manifest.json").exists():
             continue
         ok, reason = _verify(directory)
@@ -324,6 +517,8 @@ def load(auto_refresh: bool = True) -> dict[int, dict[str, Any]]:
             continue
         try:
             _state["data"] = _read_dataset(directory)
+            _state["dir"] = directory
+            _state["signature"] = _signature()
             _state["source"] = label
             _state["loaded"] = True
             return _state["data"]
@@ -354,7 +549,7 @@ def status() -> dict[str, Any]:
     find that out without reading the logs.
     """
     load()
-    directory = CACHE_DIR if _state["source"] == "cache" else BUNDLED_DIR
+    directory = _state.get("dir", BUNDLED_DIR) if _state["source"] != "rule-only" else BUNDLED_DIR
     manifest: dict[str, Any] = {}
     try:
         manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))

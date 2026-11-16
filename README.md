@@ -36,11 +36,11 @@ atsinaujina patys.**
 
 Install only from PyPI · Diekite tik iš PyPI: `pip install aion-lithuanian-market-calendar`
 
-## Latest release: 1.2.1 (2026-11-02) · Naujausia versija: 1.2.1
+## Version 1.3.0: Baltic calendar correction
 
-Version 1.2.1 adds timezone/daylight-saving conversion helpers while preserving the calendar's statutory-holiday and TARGET-settlement rules. [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/1.2.1/) · [Changelog](CHANGELOG.md). It handles statutory Lithuanian public holidays by rules; exchange closure data is independently updated and must not be represented as a perpetual verified calendar.
+Version 1.3.0 bundles the reviewed Baltic data, adds `checked_session_bounds_utc` for verified venue-years, and prevents normal and forced refresh from replacing the selected generation with an older or conflicting one. Check [PyPI release history](https://pypi.org/project/aion-lithuanian-market-calendar/#history) for distribution availability. The separate experimental software updater is not production-activated.
 
-**Release status (15 November 2026):** 1.2.1 remains the published PyPI version. Version 1.3.0 is a **review candidate, not published**; its [20-job CI run](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43701544630) passed on tested operating systems and Python versions. Candidate tests do not mean 1.3.0 is available for users. Production automatic software installation is **disabled** for both AION calendars.
+We apologize for the incorrect dates in the bundled 1.2.1 data. The correction concerns exchange sessions; it does not change Lithuanian statutory holidays or TARGET settlement rules.
 
 ### Important: known 2026 Nasdaq Baltic calendar errors in 1.2.1
 
@@ -53,11 +53,22 @@ The published 1.2.1 wheel includes an outdated Baltic closure table. Before a ve
 
 Source: [Nasdaq Baltic official trading-holiday calendar](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1). A venue not listed as closed is **not** proof of real-time availability; actual trading can be affected by notices, outages and instrument rules.
 
-A corrected **2026 review dataset** and the 1.3.0 candidate exist, but the corrected shared dataset has **not been confirmed published to the public data endpoint** as of this documentation update. Clean-install tests showed that compatible 1.2.1 clients can adopt a corrected dataset without a wheel upgrade. That isolated result does **not** mean all installed clients have received it.
+The corrected [shared generation 2026.11.15.1](https://github.com/AION-Analytics-India/aion-market-calendar-data/commit/91651c8c50852e7e82adb9986e6aa49129787cda) is public. A clean 1.2.1 wheel downloaded it from the default endpoint, verified both year files, and read the corrected answers in a new interpreter. Check `data_status()["dataset_version"]` in your application. Offline copies may still use the bundled data. In 1.2.1, explicitly forcing refresh against an older source can reinstall older data. Do not use a stale mirror. Publishing data does not upgrade Python code.
 
-Check the exact dataset generation with `data_status()`, confirm the official venue notice, and refresh from a verified public channel when the correction is authorized. A package update fixes code; a separately published, reviewed calendar-data generation can fix compatible data records. Neither changes already-running applications by itself.
+### Check for software updates
 
-**Lietuviškai (pataisų pranešimas):** Pagal [„Nasdaq Baltic“ oficialų prekybos kalendorių](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1) 2026 m. lapkričio 18 d. iš trijų Baltijos biržų nedirba tik Ryga (`XRIS`), o gruodžio 31 d. prekyba nevyksta Vilniuje (`XVIL`), Rygoje (`XRIS`) ir Taline (`XTAL`). Kartu su 1.2.1 pateikti duomenys šiais atvejais gali klaidinti. 1.3.0 versija dar neišleista. Nauja lietuviška techninė redakcija laukia gimtakalbio finansų ir teisės terminijos peržiūros.
+Run these in the Python environment your application uses:
+
+```sh
+python -m pip list --outdated
+python -m pip index versions aion-lithuanian-market-calendar
+python -m pip install --upgrade aion-lithuanian-market-calendar
+python -c "from importlib.metadata import version; print(version('aion-lithuanian-market-calendar'))"
+```
+
+pip does not automatically push package-specific upgrade notifications to every historical installer. Subscribe to the [PyPI release RSS feed](https://pypi.org/rss/project/aion-lithuanian-market-calendar/releases.xml) or use **Watch > Custom > Releases** on [GitHub](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar). Ordinary installations do not check software versions on import or during calculations. The [optional updater](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/blob/main/docs/UPDATES.md) requires separate enrollment; its notification-only mode offers the installed/available versions, release notes and upgrade instructions, supports acknowledgement and offline mode, and has a CLI fallback.
+
+**Lietuviškai (pataisų pranešimas):** Pagal [„Nasdaq Baltic“ oficialų prekybos kalendorių](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1) 2026 m. lapkričio 18 d. iš trijų Baltijos biržų nedirba tik Ryga (`XRIS`), o gruodžio 31 d. prekyba nevyksta Vilniuje (`XVIL`), Rygoje (`XRIS`) ir Taline (`XTAL`). Kartu su 1.2.1 pateikti duomenys šiais atvejais gali klaidinti. Nauja lietuviška techninė redakcija laukia gimtakalbio finansų ir teisės terminijos peržiūros.
 
 ## First useful check · Pirmasis patikrinimas
 
@@ -260,9 +271,9 @@ flowchart LR
 
 Ordinary `pip install` registers **no auto-updater**. Version 1.2.1 contains
 neither the experimental controller nor user-visible upgrade notifications.
-The 1.3.0 review candidate includes opted-in notification-only and managed
+Version 1.3.0 includes opted-in notification-only and managed
 patch-update components; they passed disposable signed-channel tests but are
-**not published or production-activated**. No production root key, approved
+**not production-activated**. No production root key, approved
 release channel or customer bootstrap is supplied. Existing applications do
 not change interpreter automatically and already-running processes are not
 restarted. PyPI does not notify every previous installer.
@@ -281,7 +292,7 @@ on each tested Windows environment. These are **candidate test results**, not
 the published 1.2.1 product's automatic-update features.
 Genuine Windows reboot/logon acceptance, production signing and customer
 bootstrap remain unresolved.
-[Candidate CI evidence](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43701544630).
+[Candidate CI evidence](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/runs/43729154251).
 
 ### Benefits and use cases
 
@@ -300,7 +311,7 @@ bootstrap remain unresolved.
 ### Limitations and operational safeguards
 
 - Only three Baltic markets received complete source review of **2026
-  venue-specific full-day closures in the 1.3.0 candidate**. Other venue
+  venue-specific full-day closures in the 1.3.0 bundle**. Other venue
   holiday lists and years are not equivalent to verified coverage.
 - The public 1.2.1 bundled Baltic data has identified correctness defects;
   public data repair and PyPI software publication are independent operations.
@@ -322,7 +333,7 @@ bootstrap remain unresolved.
 · [ECB TARGET calendar](https://www.ecb.europa.eu/ecb/contacts/working-hours/html/index.en.html)
 · [Lithuanian Labour Code Article 123](https://e-seimas.lrs.lt/portal/legalAct/lt/TAD/10c6bfd07bd511e6a0f68fd135e6f40c/asr)
 · [Shared calendar datasets](https://github.com/AION-Analytics-India/aion-market-calendar-data)
-· [Review candidate](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/tree/review/calendar-parity-20261115)
+· [Review candidate](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/tree/review/baltic-mic-containment-20261115)
 · [Report a wrong trading date](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/issues).
 
 Related queries: Lithuanian business-day Python library, Lithuania statutory

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0: Baltic data and client integrity
+
+- Bundles the reviewed Nasdaq Baltic 2026 closures (Vilnius 13, Riga 14, Tallinn 12); Riga closes November 18 and all three close December 31. Legacy fallback venue answers are unchanged.
+- Adds checked session bounds for reviewed venue-years and atomic adoption with downgrade and same-version conflict rejection.
+- Experimental, consent-based update and notification tools do not enroll customers. The production software update channel is disabled.
+- Retains the established Lithuanian glossary. The bilingual November correction excerpt is reproduced from the canonical README; its November terminology review is still outstanding.
+
 ## 1.2.1 (2026-11-02): daylight saving fix for Dublin, release checks repaired
 
 Replaces 1.2.0, which has a tag and never reached PyPI: its release checks failed.
@@ -176,3 +183,7 @@ only what *cannot* be derived.
 ## 0.1.1
 
 Lithuanian public, bank and market holidays. Computed, bilingual EN/LT.
+
+Unreleased 1.3.0 review candidate: isolate opt-in managed software updates from calendar-data refresh. No production channel, enrollment or signing key. Lithuanian copy requires native review.
+
+Unreleased review: 2026 Baltic closure lists reconciled per market, generation-atomic refresh, checked venue/year API, optional signed managed runtimes and notification receipts. Not on PyPI. New Lithuanian wording awaits native review.

@@ -1,5 +1,9 @@
 # aion-lithuanian-market-calendar
 
+**Lietuviškai (pataisų pranešimas):** Pagal [„Nasdaq Baltic“ oficialų prekybos kalendorių](https://www.nasdaqbaltic.com/statistics/en/calendar?holidays=1) 2026 m. lapkričio 18 d. iš trijų Baltijos biržų nedirba tik Ryga (`XRIS`), o gruodžio 31 d. prekyba nevyksta Vilniuje (`XVIL`), Rygoje (`XRIS`) ir Taline (`XTAL`). Kartu su 1.2.1 pateikti duomenys šiais atvejais gali klaidinti. Nauja lietuviška techninė redakcija laukia gimtakalbio finansų ir teisės terminijos peržiūros.
+
+[2026.11.15.1](https://github.com/AION-Analytics-India/aion-market-calendar-data/commit/91651c8c50852e7e82adb9986e6aa49129787cda) | [PyPI](https://pypi.org/project/aion-lithuanian-market-calendar/#history) | [README.md](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar#check-for-software-updates)
+
 > ### ⚠ Svarbu: `is_market_open` iki 1.0.0 veikė neteisingai
 >
 > Funkcija nekonvertavo laiko juostų — ji lygino jūsų vietinį laikrodį su

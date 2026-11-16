@@ -133,11 +133,17 @@ def test_christmas_eve_is_a_full_closure_not_a_half_day():
     assert store.half_day_close(eve) is None
 
 
-def test_new_years_eve_is_a_half_day():
-    """A working day with an early close -- which is what a half-day actually is."""
-    assert store.half_day_close(date(2026, 12, 31)) == time(12, 30)
-    assert is_open(datetime(2026, 12, 31, 11, 0, tzinfo=VILNIUS)) is True
-    assert is_open(datetime(2026, 12, 31, 13, 0, tzinfo=VILNIUS)) is False
+@pytest.mark.parametrize("mic", ["XVIL", "XRIS", "XTAL"])
+def test_nasdaq_2026_december_31_is_closed(mic):
+    assert store.half_day_close(date(2026, 12, 31),mic) is None
+    assert not is_trading_day(date(2026, 12, 31),mic)
+
+
+def test_riga_only_november_holiday():
+    day=date(2026,11,18)
+    assert not is_trading_day(day,"XRIS")
+    assert is_trading_day(day,"XVIL") and is_trading_day(day,"XTAL")
+
 
 
 def test_next_trading_day_steps_over_the_christmas_closure():
