@@ -280,6 +280,8 @@ restarted. PyPI does not notify every previous installer.
 
 ### Operating-system and release verification
 
+The table summarizes the separately identified review run. Final artifact evidence is retained by the [verification workflow](https://github.com/AION-Analytics-India/aion-lithuanian-market-calendar/actions/workflows/verify-review.yml).
+
 | Platform | Published 1.2.1 library | Experimental 1.3.0 candidate evidence |
 | --- | --- | --- |
 | macOS | Python library supported; uses IANA timezone data | Native wheel/sdist and isolated user `launchd` updater tests passed |
@@ -437,8 +439,7 @@ session_bounds_utc(date(2026, 3, 30), "XVIL")  # 07:00 to 12:55 UTC; 08:00 to 13
 **Statutory holidays are computed by rule; exchange closures require maintained data.** You normally do not need a package release for an updated exchange closure, because supported installations can refresh verified calendar data. Code changes and new interfaces may still require a package upgrade.
 
 Lithuanian *public* holidays are computed — twelve fixed dates, two from the
-Easter computus, two from a first-Sunday rule — so they are correct for any year,
-forever, offline.
+Easter computus, two from a first-Sunday rule — so they can be computed offline for years to which those statutory rules apply. A change in the law requires a rule update.
 
 *Exchange* holidays are different. A venue closes when it says it closes, and a
 government can declare a day of mourning with a week's notice. Nothing derives
@@ -449,15 +450,14 @@ them, so they live in maintained JSON with a SHA-256 manifest (**not a digital s
 - If the remote is newer **and every file matches its SHA-256**, the update is
   cached under `~/.cache/aion_lt_calendar/` and used from then on.
 - If anything at all goes wrong — offline, proxy, DNS, a host serving nonsense,
-  a hash that does not match — it keeps the bundled data, logs once, and carries
-  on for refresh failures. Validate `data_status()` and venue-year coverage
+  a hash that does not match — it retains the last verified cache or bundled fallback. Validate `data_status()` and venue-year coverage
   before using an answer in a schedule-critical system.
 
 ```python
 from aion_lithuanian_market_calendar import data_status, refresh_data
 
-data_status()
-# {'source': 'bundled', 'rule_only': False, 'dataset_version': '2026.09.12', ...}
+status = data_status()
+print(status["source"], status["dataset_version"], status["rule_only"])
 
 refresh_data(force=True)     # check now rather than waiting for the daily check
 ```
@@ -467,7 +467,7 @@ verified data loaded: weekends and computed public holidays still apply, but
 exchange closures are unknown. The library says so rather than guessing, because
 an invented closure makes a scheduler skip a real trading day.
 
-Air-gapped? `AION_LT_CALENDAR_OFFLINE=1` disables the network entirely.
+For offline calendar data, set `AION_LT_CALENDAR_OFFLINE=1` before calling the library. An independently enrolled experimental software supervisor has its own offline control.
 Self-hosting the data? `AION_LT_CALENDAR_URL=https://your.host/path`.
 
 ### Exchange holidays are not public holidays

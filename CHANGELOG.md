@@ -184,6 +184,6 @@ only what *cannot* be derived.
 
 Lithuanian public, bank and market holidays. Computed, bilingual EN/LT.
 
-Unreleased 1.3.0 review candidate: isolate opt-in managed software updates from calendar-data refresh. No production channel, enrollment or signing key. Lithuanian copy requires native review.
+Historical review note (2026-11-15, before release integration): isolate opt-in managed software updates from calendar-data refresh. No production channel, enrollment or signing key. Lithuanian copy requires native review.
 
 Unreleased review: 2026 Baltic closure lists reconciled per market, generation-atomic refresh, checked venue/year API, optional signed managed runtimes and notification receipts. Not on PyPI. New Lithuanian wording awaits native review.
